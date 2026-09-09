@@ -1,0 +1,53 @@
+[
+  {
+    "total_flows": 5000,
+    "scenario": "mixed",
+    "seed": 42,
+    "generation_time_s": 0.0783,
+    "processing_time_s": 39.6186,
+    "throughput_fps": 126.2,
+    "mean_latency_ms": 7.922,
+    "p50_latency_ms": 7.302,
+    "p95_latency_ms": 11.79,
+    "p99_latency_ms": 12.274,
+    "min_latency_ms": 6.814,
+    "max_latency_ms": 55.336,
+    "std_latency_ms": 1.663,
+    "total_alerts_produced": 1870,
+    "alerts_by_threat_class": {
+      "ENCRYPTED_ANOMALY": 684,
+      "DGA": 15,
+      "DATA_EXFILTRATION": 34,
+      "DDOS": 25,
+      "C2_BEACONING": 242
+    },
+    "alerts_by_severity": {
+      "LOW": 0,
+      "MEDIUM": 566,
+      "HIGH": 153,
+      "CRITICAL": 281
+    },
+    "alert_store_capacity": 1000,
+    "alert_store_count": 1000,
+    "flow_store_capacity": 2000,
+    "flow_store_count": 2000,
+    "dedup_tracked_keys": 1096,
+    "feature_src_entities": 802,
+    "feature_dst_entities": 21,
+    "rss_before_mb": 148.82,
+    "rss_after_mb": 159.22,
+    "rss_delta_mb": 10.4,
+    "peak_rss_mb": 319.03,
+    "environment": {
+      "platform": "Linux-7.1.5-arch1-2-x86_64-with-glibc2.44",
+      "os_name": "Linux",
+      "os_release": "7.1.5-arch1-2",
+      "architecture": "x86_64",
+      "python_version": "3.14.6",
+      "cpu_model": "AMD Ryzen 5 PRO 4650U with Radeon Graphics",
+      "cpu_count": 12,
+      "total_ram_mb": 15200.2,
+      "environment_note": "Measured on the development/test environment."
+    }
+  }
+]

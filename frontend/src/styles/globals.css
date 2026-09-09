@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    /* Color Palette - Dark SOC Operations Console */
+    --bg-dark-soc: #0b0f17;
+    --panel-bg: #111827;
+    --panel-border: #1e293b;
+    --panel-border-subtle: #0f172a;
+
+    /* Semantic Security Severity Tokens */
+    --severity-critical: #f43f5e;
+    --severity-critical-bg: rgba(244, 63, 94, 0.12);
+    --severity-critical-border: rgba(244, 63, 94, 0.3);
+
+    --severity-high: #f97316;
+    --severity-high-bg: rgba(249, 115, 22, 0.12);
+    --severity-high-border: rgba(249, 115, 22, 0.3);
+
+    --severity-medium: #f59e0b;
+    --severity-medium-bg: rgba(245, 158, 11, 0.12);
+    --severity-medium-border: rgba(245, 158, 11, 0.3);
+
+    --severity-low: #64748b;
+    --severity-low-bg: rgba(100, 116, 139, 0.12);
+    --severity-low-border: rgba(100, 116, 139, 0.3);
+
+    /* Operational Status Tokens */
+    --status-healthy: #10b981;
+    --status-warning: #f59e0b;
+    --status-error: #ef4444;
+    --status-info: #06b6d4;
+
+    /* Focus & Accessibility Tokens */
+    --focus-ring: #06b6d4;
+  }
+
+  body {
+    background-color: var(--bg-dark-soc);
+    color: #f8fafc;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    min-height: 100vh;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+}
+
+/* Common focus indicator helper class */
+.focus-ring {
+  outline: none;
+}
+.focus-ring:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}

@@ -1,0 +1,233 @@
+[
+  {
+    "scenario": "benign",
+    "input_type": "actual lab-generated",
+    "tool_model": "Live HTTP/TCP loopback client-server",
+    "total_flows": 40,
+    "alerts_generated": 0,
+    "detected": true,
+    "expected_threat_class": null,
+    "detected_threat_classes": [],
+    "mean_confidence": 0.0,
+    "severities": [],
+    "mean_latency_ms": 11.745,
+    "evidence_signals": [],
+    "false_positives": 0,
+    "misses": 0,
+    "schema_valid": true,
+    "notes": "0 false positives observed (clean pass)"
+  },
+  {
+    "scenario": "ddos",
+    "input_type": "actual lab-generated",
+    "tool_model": "Live high-rate UDP socket flood",
+    "total_flows": 40,
+    "alerts_generated": 40,
+    "detected": true,
+    "expected_threat_class": "DDOS",
+    "detected_threat_classes": [
+      "DDOS"
+    ],
+    "mean_confidence": 0.96,
+    "severities": [
+      "CRITICAL",
+      "HIGH"
+    ],
+    "mean_latency_ms": 12.088,
+    "evidence_signals": [
+      "destination_concentration",
+      "distributed_source_diversity",
+      "high_flow_rate",
+      "ml_classifier_support",
+      "ml_hypothesis",
+      "source_ip_diversity",
+      "udp_flood_pattern"
+    ],
+    "false_positives": 0,
+    "misses": 0,
+    "schema_valid": true,
+    "notes": "Primary alert class ['DDOS']"
+  },
+  {
+    "scenario": "port_scan",
+    "input_type": "actual lab-generated",
+    "tool_model": "Live TCP SYN port sweep (Nmap-style)",
+    "total_flows": 40,
+    "alerts_generated": 1,
+    "detected": true,
+    "expected_threat_class": "RECONNAISSANCE",
+    "detected_threat_classes": [
+      "RECONNAISSANCE"
+    ],
+    "mean_confidence": 0.75,
+    "severities": [
+      "HIGH"
+    ],
+    "mean_latency_ms": 11.904,
+    "evidence_signals": [
+      "ml_hypothesis"
+    ],
+    "false_positives": 0,
+    "misses": 0,
+    "schema_valid": true,
+    "notes": "Primary alert class ['RECONNAISSANCE']"
+  },
+  {
+    "scenario": "c2_beacon",
+    "input_type": "synthetic/replayed",
+    "tool_model": "Modeled on Cobalt Strike / Sliver 30s jittered beaconing",
+    "total_flows": 40,
+    "alerts_generated": 31,
+    "detected": true,
+    "expected_threat_class": "C2_BEACONING",
+    "detected_threat_classes": [
+      "C2_BEACONING",
+      "ENCRYPTED_ANOMALY"
+    ],
+    "mean_confidence": 0.7618,
+    "severities": [
+      "CRITICAL",
+      "MEDIUM"
+    ],
+    "mean_latency_ms": 11.635,
+    "evidence_signals": [
+      "connection_repetition",
+      "ml_classifier_divergence",
+      "ml_classifier_support",
+      "payload_size_consistency",
+      "suspicious_tls_fingerprint",
+      "temporal_periodicity"
+    ],
+    "false_positives": 0,
+    "misses": 0,
+    "schema_valid": true,
+    "notes": "Primary alert class ['C2_BEACONING', 'ENCRYPTED_ANOMALY']"
+  },
+  {
+    "scenario": "dns_tunnel",
+    "input_type": "synthetic/replayed",
+    "tool_model": "Modeled on dnscat2 / iodine (base32/hex TXT tunneling)",
+    "total_flows": 40,
+    "alerts_generated": 1,
+    "detected": true,
+    "expected_threat_class": "DNS_TUNNELING",
+    "detected_threat_classes": [
+      "DNS_TUNNELING"
+    ],
+    "mean_confidence": 0.9768,
+    "severities": [
+      "CRITICAL"
+    ],
+    "mean_latency_ms": 11.865,
+    "evidence_signals": [
+      "abnormal_query_length",
+      "high_dns_entropy",
+      "large_dns_payload",
+      "ml_classifier_support",
+      "suspicious_dns_record_type"
+    ],
+    "false_positives": 0,
+    "misses": 0,
+    "schema_valid": true,
+    "notes": "Primary alert class ['DNS_TUNNELING']"
+  },
+  {
+    "scenario": "dga",
+    "input_type": "synthetic/replayed",
+    "tool_model": "Modeled on Conficker / CryptoLocker algorithmic DGA",
+    "total_flows": 40,
+    "alerts_generated": 15,
+    "detected": true,
+    "expected_threat_class": "DGA",
+    "detected_threat_classes": [
+      "DGA"
+    ],
+    "mean_confidence": 0.8632,
+    "severities": [
+      "CRITICAL",
+      "HIGH"
+    ],
+    "mean_latency_ms": 11.843,
+    "evidence_signals": [
+      "abnormal_vowel_distribution",
+      "consonant_cluster_anomaly",
+      "dga_lexical_anomaly",
+      "high_dns_entropy",
+      "ml_classifier_support",
+      "ml_hypothesis"
+    ],
+    "false_positives": 0,
+    "misses": 0,
+    "schema_valid": true,
+    "notes": "Primary alert class ['DGA']"
+  },
+  {
+    "scenario": "exfiltration",
+    "input_type": "actual lab-generated",
+    "tool_model": "Live high-volume TCP stream push (~2MB)",
+    "total_flows": 5,
+    "alerts_generated": 2,
+    "detected": true,
+    "expected_threat_class": "DATA_EXFILTRATION",
+    "detected_threat_classes": [
+      "C2_BEACONING",
+      "DATA_EXFILTRATION"
+    ],
+    "mean_confidence": 0.848,
+    "severities": [
+      "HIGH"
+    ],
+    "mean_latency_ms": 12.483,
+    "evidence_signals": [
+      "connection_repetition",
+      "large_outbound_volume",
+      "ml_classifier_divergence",
+      "ml_classifier_support",
+      "outbound_inbound_ratio",
+      "payload_size_consistency",
+      "sustained_transfer",
+      "temporal_periodicity"
+    ],
+    "false_positives": 0,
+    "misses": 0,
+    "schema_valid": true,
+    "notes": "Primary alert class ['C2_BEACONING', 'DATA_EXFILTRATION']"
+  },
+  {
+    "scenario": "encrypted_anomaly",
+    "input_type": "synthetic/replayed",
+    "tool_model": "Modeled on obsolete SSL/TLS RC4 ciphers & direct-IP SNI",
+    "total_flows": 40,
+    "alerts_generated": 45,
+    "detected": true,
+    "expected_threat_class": "ENCRYPTED_ANOMALY",
+    "detected_threat_classes": [
+      "DDOS",
+      "ENCRYPTED_ANOMALY"
+    ],
+    "mean_confidence": 0.7368,
+    "severities": [
+      "HIGH",
+      "MEDIUM"
+    ],
+    "mean_latency_ms": 11.943,
+    "evidence_signals": [
+      "anomalous_packet_timing_profile",
+      "destination_concentration",
+      "direct_ip_sni",
+      "distributed_source_diversity",
+      "high_flow_rate",
+      "ml_classifier_divergence",
+      "ml_classifier_support",
+      "ml_hypothesis",
+      "obsolete_quic_version",
+      "obsolete_tls_version",
+      "source_ip_diversity",
+      "suspicious_tls_fingerprint"
+    ],
+    "false_positives": 0,
+    "misses": 0,
+    "schema_valid": true,
+    "notes": "Primary alert class ['DDOS', 'ENCRYPTED_ANOMALY']"
+  }
+]

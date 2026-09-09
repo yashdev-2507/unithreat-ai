@@ -388,50 +388,32 @@ evidence cannot support such a conclusion.
 
 # 9. Machine Learning Layer
 
-The initial ML implementation will use practical tabular machine-learning
-models.
+The ML intelligence layer is implemented in `src/unithreat/ml/` as a tabular supervised classifier complementing the statistical and behavioral detection engines.
 
-Preferred starting technologies:
+For comprehensive architectural and methodology details, see [ML Architecture Documentation](ml-architecture.md).
 
-- Python
-- scikit-learn
+### Key Architecture Components:
+- **Baseline Model**: `RandomForestClassifier` (scikit-learn) with `SimpleImputer(strategy="median")`.
+- **Feature Vector**: 37 canonical features extracted from `FeatureRecord.features` adhering strictly to `contracts/feature-schema.json`.
+- **Taxonomy (8 Classes)**: `BENIGN`, `DDOS`, `C2_BEACONING`, `DGA`, `DNS_TUNNELING`, `RECONNAISSANCE`, `DATA_EXFILTRATION`, `ENCRYPTED_ANOMALY`.
+- **Leakage Prevention**: Group/run-aware splitting (`split_dataset_by_group`) ensures entire multi-flow simulation runs are allocated exclusively to train, validation, or test sets.
+- **Contract Strictness**: Single-flow predictions output directly to `contracts/ml-prediction-schema.json` with `calibrated: false` explicitly documented as an uncalibrated confidence index.
+- **Passive Constraints**: Zero active networking, packet transmission, or payload decryption.
 
-Candidate models include:
-
-- Random Forest
-- Gradient Boosting
-- HistGradientBoosting
-- XGBoost if justified
-
-The final model will be selected based on measured validation performance,
-latency, complexity, and reliability.
-
-Deep learning is not a requirement.
-
-The ML pipeline must support:
+The ML pipeline is structured as:
 
 ```text
-Dataset
- ↓
-Feature Extraction
- ↓
-Preprocessing
- ↓
-Training
- ↓
-Validation
- ↓
-Model Serialization
- ↓
-Model Loading
- ↓
-Inference
+Synthetic / Ingested Flow
+  ↓
+FeatureExtractor (37 features)
+  ↓
+MLInferenceEngine (pre-loaded pipeline)
+  ↓
+MLPrediction (contracts/ml-prediction-schema.json)
 ```
 
-Training and inference should be separated from the real-time detection
-pipeline where practical.
+Model artifacts are persisted to disk as `model.joblib` and `metadata.json`.
 
-Model inputs must have a stable and versioned feature definition.
 
 ---
 
@@ -618,22 +600,92 @@ Breaking changes to the alert contract must be deliberate and coordinated.
 
 ---
 
-# 14. Backend and Persistence
+# 13.1 Alert Fusion and Deduplication Architecture
+
+Alert generation combines deterministic statistical/behavioral detectors with ML model inference via the `AlertFusionEngine` (`src/unithreat/alerts/fusion.py`) and suppresses redundant alarms via the `AlertDeduplicator` (`src/unithreat/alerts/dedup.py`).
+
+### Alert Fusion Engine (Explicit Deterministic Cases)
+
+Alert fusion reconciles statistical detector outputs (`DetectionResult`) and tabular ML predictions (`MLPrediction`). Rather than applying a blanket weighted-average formula across all predictions, the engine evaluates four mutually exclusive, deterministic cases:
+
+1. **Case 1: Statistical Detection + ML Agree**
+   - Both the statistical detector and ML classifier identify the same threat class.
+   - The statistical threat class is preserved.
+   - Confidence receives a modest supporting boost: `confidence = min(1.0, stat_conf + (1.0 - stat_conf) * 0.25 * ml_score)`.
+   - An `EvidenceSignal` is appended with `direction="supporting"`, `reliability=0.85`, recording ML agreement.
+
+2. **Case 2: Statistical Detection + ML Disagree**
+   - The statistical detector identifies a threat, but ML classifies the flow as `BENIGN` or a different threat class.
+   - The statistical threat class is preserved because statistical evidence is directly observable and interpretable.
+   - Confidence is dampened: `confidence = stat_conf * 0.85`.
+   - An `EvidenceSignal` is appended with `direction="contradicting"`, `reliability=0.50`, recording ML disagreement.
+
+3. **Case 3: Statistical Detection Only**
+   - No ML prediction is available (e.g. model not loaded or optional feature missing).
+   - Statistical threat class, confidence, and severity are preserved completely unchanged.
+   - No artificial ML confidence or evidence is introduced.
+
+4. **Case 4: ML Detection Only (ML Hypothesis)**
+   - Statistical detectors found no anomaly, but the ML classifier predicted a malicious class with score $\ge 0.75$.
+   - Because the model is trained on synthetic data and produces an uncalibrated voting ratio (`calibrated: false`), this alert is explicitly treated as an *ML hypothesis*.
+   - Confidence is conservatively computed: `confidence = min(0.75, ml_score * 0.80)`.
+   - Severity is capped at `HIGH` (never `CRITICAL`).
+   - An `EvidenceSignal` is attached with `signal_name="ml_hypothesis"`, `reliability=0.65`, and `direction="supporting"`.
+
+### Bounded Alert Deduplication
+
+To prevent alert fatigue and volumetric memory exhaustion:
+- **Deduplication Key**: `(source_ip, destination_ip, threat_class)`.
+- **Bounded LRU Cache**: Implemented with an `OrderedDict` capped at 10,000 keys.
+- **Suppression Window**: Configurable duration (default 60 seconds). Duplicate alerts within this window are safely suppressed. Expired entries are pruned lazily.
+
+### Bounded In-Memory Storage
+
+For prototype operation without heavy external databases (Redis/PostgreSQL):
+- `BoundedAlertStore`: Thread-safe ring buffer (`collections.deque(maxlen=1000)`). Stores alerts newest-first. Supports filtering by `threat_class`, `severity`, and `limit`.
+- `BoundedFlowStore`: Thread-safe ring buffer (`collections.deque(maxlen=2000)`) indexed by `flow_id` for flow lookups.
+
+### Measured Pipeline Performance Characteristics
+
+Measured on the development/test environment (AMD Ryzen 5 PRO 4650U, 12 cores, Linux 7.1.5 x86_64, Python 3.14.6) using the end-to-end streaming detection pipeline with full feature extraction (37 features), 6 statistical detectors, Random Forest ML inference, alert fusion, deduplication, and bounded storage:
+
+- **Throughput**: ~96 to 132 flows/sec under sustained mixed-threat traffic replay (evaluated up to 10,000 continuous flows).
+- **Latency**: Mean processing latency of 7.6 to 10.4 ms per flow (P50: ~7.3 ms, P95: ~11.4 to 12.6 ms, P99: ~11.8 to 13.1 ms).
+- **Bounded In-Memory Guarantees**: Strict ring-buffer bounds enforced across all components (`BoundedAlertStore` maxlen=1,000; `BoundedFlowStore` maxlen=2,000; `AlertDeduplicator` max_tracked_keys=10,000; window entity trackers max_tracked_entities=10,000). Peak resident memory remains strictly bounded (~329 MB peak RSS across 10,000 continuous flows with zero unbounded memory growth).
+
+---
+
+# 14. Backend and Streaming Architecture
 
 ## Backend
 
 Preferred technology:
+- FastAPI (`src/unithreat/api/app.py`, `src/unithreat/api/routes.py`)
+- Uvicorn ASGI server
 
-- FastAPI
+### REST API Endpoints:
+- `GET /health` — Service health status, pipeline components, and model metadata.
+- `GET /alerts` — List recent alerts with query parameters (`limit`, `threat_class`, `severity`), newest-first.
+- `GET /alerts/{flow_id}` — Retrieve the specific alert associated with a flow identifier.
+- `GET /flows/{flow_id}` — Retrieve raw flow metadata for forensic investigation.
+- `GET /stats` — Real-time operational statistics (total flows, total alerts, alerts by threat class, alerts by severity).
+- `POST /ingest/flow` — Ingest a single raw flow JSON record into the live processing pipeline. Returns processing status and generated alerts.
 
-Responsibilities:
+### Passive Boundary Guarantee for Ingest API:
+`POST /ingest/flow` is strictly intended for local testing, dataset replay, and application ingestion.
+- The endpoint performs **zero active network communication**.
+- It does **not send packets, open sockets to external hosts, complete TCP handshakes, or establish return paths** to monitored network sources.
+- Monitored traffic sources remain strictly isolated behind the passive capture boundary.
 
-- expose alert APIs
-- provide detection data to the dashboard
-- manage application-level interfaces
-- expose system status and metrics where required
+## Realtime Streaming (WebSocket)
 
-The backend must not become an active network-control component.
+Technology:
+- WebSocket endpoint at `WS /ws/alerts` managed by `AlertStreamManager` (`src/unithreat/api/stream.py`).
+
+### Bounded Streaming Queues:
+- Each connected client is allocated a dedicated, bounded `asyncio.Queue(maxsize=100)`.
+- If a client queue fills up due to slow consumption, a deterministic **drop-oldest** policy is enforced to prevent unbounded memory growth.
+- Client disconnections are detected and cleaned up gracefully.
 
 ---
 
