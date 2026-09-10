@@ -15,9 +15,16 @@ export interface ThreatClassBadgeProps {
   className?: string;
 }
 
-function renderThreatClassIcon(threatClass: string, iconSizes: string) {
+function getThreatClassStyle(_threatClass: string): { borderBgText: string; iconColor: string } {
+  return {
+    borderBgText: 'border-slate-200 bg-slate-100 text-slate-800',
+    iconColor: 'text-[#2563EB]',
+  };
+}
+
+function renderThreatClassIcon(threatClass: string, iconSizes: string, iconColor: string) {
   const tc = (threatClass || '').toLowerCase();
-  const cls = `${iconSizes} text-cyan-400 shrink-0`;
+  const cls = `${iconSizes} ${iconColor} shrink-0`;
   if (tc.includes('ddos') || tc.includes('volumetric') || tc.includes('flood')) {
     return <Zap className={cls} aria-hidden="true" />;
   }
@@ -45,19 +52,20 @@ export const ThreatClassBadge: FC<ThreatClassBadgeProps> = ({
   className = '',
 }) => {
   const displayLabel = threatClass || 'N/A';
+  const style = getThreatClassStyle(displayLabel);
   const sizeClasses =
     size === 'sm'
-      ? 'px-2 py-0.5 text-[11px] gap-1'
-      : 'px-2.5 py-1 text-xs gap-1.5';
+      ? 'px-2 py-0.5 text-[11px] gap-1.5'
+      : 'px-2.5 py-1 text-xs gap-2';
 
   const iconSizes = size === 'sm' ? 'h-3 w-3' : 'h-3.5 w-3.5';
 
   return (
     <span
-      className={`inline-flex items-center font-medium rounded border border-cyan-900/40 bg-cyan-950/30 text-cyan-300 select-none ${sizeClasses} ${className}`}
+      className={`inline-flex items-center font-medium rounded-md border select-none ${style.borderBgText} ${sizeClasses} ${className}`}
       title={`Threat Class: ${displayLabel}`}
     >
-      {renderThreatClassIcon(displayLabel, iconSizes)}
+      {renderThreatClassIcon(displayLabel, iconSizes, style.iconColor)}
       <span className="truncate">{displayLabel}</span>
     </span>
   );

@@ -93,7 +93,7 @@ export const ThreatAnalysisPage: FC<ThreatAnalysisPageProps> = ({ dataService })
 
   const handleFilterChange = (setter: (val: string) => void, val: string) => {
     setter(val);
-    setPage(1); // Reset to page 1 on filter change
+    setPage(1);
   };
 
   const handleResetFilters = () => {
@@ -153,47 +153,47 @@ export const ThreatAnalysisPage: FC<ThreatAnalysisPageProps> = ({ dataService })
             {/* Severity Breakdown & Threat-Class Distribution Cards */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Severity Distribution Card */}
-              <div className="rounded-lg border border-[var(--panel-border)] bg-[var(--panel-bg)] p-5 space-y-4">
-                <div className="flex items-center justify-between border-b border-[var(--panel-border-subtle)] pb-3">
-                  <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wider font-mono flex items-center gap-2">
-                    <ShieldAlert className="h-4 w-4 text-rose-400" />
+              <div className="rounded-xl border border-[#E5E5E5] bg-[#FFFFFF] p-5 space-y-4 shadow-2xs">
+                <div className="flex items-center justify-between border-b border-[#E5E5E5] pb-3">
+                  <h3 className="text-base font-bold text-[#0A0A0A] font-sans flex items-center gap-2">
+                    <ShieldAlert className="h-4 w-4 text-rose-600" />
                     Severity Breakdown
                   </h3>
-                  <span className="text-xs text-slate-400 font-mono">
+                  <span className="text-xs text-slate-500 font-mono">
                     Total: {metrics.total_alerts}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 font-mono">
-                  <div className="rounded border border-rose-900/40 bg-rose-950/20 p-3">
-                    <div className="text-[11px] text-rose-400 font-sans font-medium uppercase">
+                  <div className="rounded-lg border border-rose-200 bg-rose-50 p-3">
+                    <div className="text-[11px] text-rose-700 font-sans font-bold uppercase">
                       Critical
                     </div>
-                    <div className="text-2xl font-bold text-rose-300 mt-1">
+                    <div className="text-2xl font-bold text-rose-700 mt-1 font-sans">
                       {metrics.critical_alerts}
                     </div>
                   </div>
-                  <div className="rounded border border-orange-900/40 bg-orange-950/20 p-3">
-                    <div className="text-[11px] text-orange-400 font-sans font-medium uppercase">
+                  <div className="rounded-lg border border-orange-200 bg-orange-50 p-3">
+                    <div className="text-[11px] text-orange-700 font-sans font-bold uppercase">
                       High
                     </div>
-                    <div className="text-2xl font-bold text-orange-300 mt-1">
+                    <div className="text-2xl font-bold text-orange-700 mt-1 font-sans">
                       {metrics.high_alerts}
                     </div>
                   </div>
-                  <div className="rounded border border-amber-900/40 bg-amber-950/20 p-3">
-                    <div className="text-[11px] text-amber-400 font-sans font-medium uppercase">
+                  <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
+                    <div className="text-[11px] text-amber-700 font-sans font-bold uppercase">
                       Medium
                     </div>
-                    <div className="text-2xl font-bold text-amber-300 mt-1">
+                    <div className="text-2xl font-bold text-amber-700 mt-1 font-sans">
                       {metrics.medium_alerts}
                     </div>
                   </div>
-                  <div className="rounded border border-slate-700/50 bg-slate-800/30 p-3">
-                    <div className="text-[11px] text-slate-400 font-sans font-medium uppercase">
+                  <div className="rounded-lg border border-slate-200 bg-slate-100 p-3">
+                    <div className="text-[11px] text-slate-600 font-sans font-bold uppercase">
                       Low
                     </div>
-                    <div className="text-2xl font-bold text-slate-300 mt-1">
+                    <div className="text-2xl font-bold text-slate-700 mt-1 font-sans">
                       {metrics.low_alerts}
                     </div>
                   </div>
@@ -201,23 +201,23 @@ export const ThreatAnalysisPage: FC<ThreatAnalysisPageProps> = ({ dataService })
               </div>
 
               {/* Threat-Class Distribution Card */}
-              <div className="rounded-lg border border-[var(--panel-border)] bg-[var(--panel-bg)] p-5 space-y-4 lg:col-span-2">
-                <div className="flex items-center justify-between border-b border-[var(--panel-border-subtle)] pb-3">
-                  <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wider font-mono flex items-center gap-2">
-                    <AlertOctagon className="h-4 w-4 text-cyan-400" />
+              <div className="rounded-xl border border-[#E5E5E5] bg-[#FFFFFF] p-5 space-y-4 lg:col-span-2 shadow-2xs">
+                <div className="flex items-center justify-between border-b border-[#E5E5E5] pb-3">
+                  <h3 className="text-base font-bold text-[#0A0A0A] font-sans flex items-center gap-2">
+                    <AlertOctagon className="h-4 w-4 text-[#2563EB]" />
                     Threat Class Distribution
                   </h3>
-                  <span className="text-xs text-slate-400 font-mono">Backend Intelligence</span>
+                  <span className="text-xs text-slate-500 font-mono">Backend Intelligence</span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {Object.entries(metrics.threat_counts_by_class).map(([threatClass, count]) => (
                     <div
                       key={threatClass}
-                      className="flex items-center justify-between rounded border border-slate-800 bg-slate-900/50 p-2.5"
+                      className="flex items-center justify-between rounded-lg border border-[#E5E5E5] bg-[#F8FAFC] p-2.5"
                     >
                       <ThreatClassBadge threatClass={threatClass} size="sm" />
-                      <span className="font-mono text-sm font-bold text-slate-200">
+                      <span className="font-mono text-sm font-bold text-[#0A0A0A]">
                         {count} {count === 1 ? 'alert' : 'alerts'}
                       </span>
                     </div>
@@ -227,17 +227,17 @@ export const ThreatAnalysisPage: FC<ThreatAnalysisPageProps> = ({ dataService })
             </div>
 
             {/* Filter Control Bar */}
-            <div className="rounded-lg border border-[var(--panel-border)] bg-[var(--panel-bg)] p-4 space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--panel-border-subtle)] pb-3">
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-300 font-mono">
-                  <Filter className="h-4 w-4 text-cyan-400" />
+            <div className="rounded-xl border border-[#E5E5E5] bg-[#FFFFFF] p-4 space-y-4 shadow-2xs">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E5E5E5] pb-3">
+                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#0A0A0A] font-sans">
+                  <Filter className="h-4 w-4 text-[#2563EB]" />
                   <span>Alert Filters</span>
                 </div>
 
                 <button
                   type="button"
                   onClick={handleResetFilters}
-                  className="inline-flex items-center gap-1.5 rounded border border-slate-700 bg-slate-900 px-2.5 py-1 text-xs font-mono text-slate-300 hover:bg-slate-800 hover:text-slate-100 focus-ring"
+                  className="inline-flex items-center gap-1.5 rounded-md border border-[#E5E5E5] bg-[#FFFFFF] px-2.5 py-1 text-xs font-sans text-[#525252] hover:bg-[#F5F5F5] hover:text-[#0A0A0A] focus-ring"
                 >
                   <RotateCcw className="h-3 w-3" />
                   <span>Reset Filters</span>
@@ -247,11 +247,11 @@ export const ThreatAnalysisPage: FC<ThreatAnalysisPageProps> = ({ dataService })
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-sans">
                 {/* IP Search Filter */}
                 <div className="space-y-1.5">
-                  <label htmlFor="threat-ip-search" className="block text-[11px] font-mono text-slate-400">
+                  <label htmlFor="threat-ip-search" className="block text-xs font-medium font-sans text-[#525252]">
                     Search IP Address
                   </label>
                   <div className="relative">
-                    <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-500" />
+                    <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
                     <input
                       id="threat-ip-search"
                       type="text"
@@ -260,14 +260,14 @@ export const ThreatAnalysisPage: FC<ThreatAnalysisPageProps> = ({ dataService })
                         handleFilterChange(setSearchIpInput, e.target.value)
                       }
                       placeholder="Filter by source or dest IP..."
-                      className="w-full rounded border border-slate-700 bg-slate-950/80 py-1.5 pl-8 pr-3 font-mono text-xs text-slate-200 placeholder-slate-500 focus-ring"
+                      className="w-full rounded-lg border border-[#D4D4D4] bg-[#FFFFFF] py-1.5 pl-8 pr-3 font-mono text-xs text-[#0A0A0A] placeholder-slate-400 focus-ring"
                     />
                   </div>
                 </div>
 
                 {/* Severity Filter */}
                 <div className="space-y-1.5">
-                  <label htmlFor="threat-severity-filter" className="block text-[11px] font-mono text-slate-400">
+                  <label htmlFor="threat-severity-filter" className="block text-xs font-medium font-sans text-[#525252]">
                     Severity Level
                   </label>
                   <select
@@ -276,7 +276,7 @@ export const ThreatAnalysisPage: FC<ThreatAnalysisPageProps> = ({ dataService })
                     onChange={(e: ChangeEvent<HTMLSelectElement>) =>
                       handleFilterChange(setSeverityFilter, e.target.value)
                     }
-                    className="w-full rounded border border-slate-700 bg-slate-950/80 py-1.5 px-2.5 font-mono text-xs text-slate-200 focus-ring"
+                    className="w-full rounded-lg border border-[#D4D4D4] bg-[#FFFFFF] py-1.5 px-2.5 font-sans text-xs text-[#0A0A0A] focus-ring"
                   >
                     {SEVERITY_OPTIONS.map((sev) => (
                       <option key={sev} value={sev}>
@@ -288,7 +288,7 @@ export const ThreatAnalysisPage: FC<ThreatAnalysisPageProps> = ({ dataService })
 
                 {/* Threat Class Filter */}
                 <div className="space-y-1.5">
-                  <label htmlFor="threat-class-filter" className="block text-[11px] font-mono text-slate-400">
+                  <label htmlFor="threat-class-filter" className="block text-xs font-medium font-sans text-[#525252]">
                     Threat Class
                   </label>
                   <select
@@ -297,7 +297,7 @@ export const ThreatAnalysisPage: FC<ThreatAnalysisPageProps> = ({ dataService })
                     onChange={(e: ChangeEvent<HTMLSelectElement>) =>
                       handleFilterChange(setThreatClassFilter, e.target.value)
                     }
-                    className="w-full rounded border border-slate-700 bg-slate-950/80 py-1.5 px-2.5 font-mono text-xs text-slate-200 focus-ring"
+                    className="w-full rounded-lg border border-[#D4D4D4] bg-[#FFFFFF] py-1.5 px-2.5 font-sans text-xs text-[#0A0A0A] focus-ring"
                   >
                     {CANONICAL_THREAT_FILTER_OPTIONS.map((opt) => (
                       <option key={opt.value} value={opt.value}>
@@ -310,22 +310,22 @@ export const ThreatAnalysisPage: FC<ThreatAnalysisPageProps> = ({ dataService })
             </div>
 
             {/* Authoritative Threat Alerts Table */}
-            <div className="rounded-lg border border-[var(--panel-border)] bg-[var(--panel-bg)] p-5 space-y-4">
-              <div className="flex items-center justify-between border-b border-[var(--panel-border-subtle)] pb-3">
-                <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wider font-mono flex items-center gap-2">
-                  <ShieldAlert className="h-4 w-4 text-amber-400" />
+            <div className="rounded-xl border border-[#E5E5E5] bg-[#FFFFFF] p-5 space-y-4 shadow-2xs">
+              <div className="flex items-center justify-between border-b border-[#E5E5E5] pb-3">
+                <h3 className="text-base font-bold text-[#0A0A0A] font-sans flex items-center gap-2">
+                  <ShieldAlert className="h-4 w-4 text-amber-600" />
                   Authoritative Threat Alerts ({alertsResponse.total})
                 </h3>
               </div>
 
               {alertsResponse.data.length === 0 ? (
-                <div className="py-8 text-center text-xs text-slate-400 font-sans">
+                <div className="py-8 text-center text-xs text-[#525252] font-sans">
                   No threat alerts found matching filter criteria.
                 </div>
               ) : (
-                <div className="overflow-x-auto focus-ring" role="region" aria-label="Threat Analysis Alert Dataset" tabIndex={0}>
+                <div className="overflow-x-auto focus-ring rounded-lg border border-[#E5E5E5]" role="region" aria-label="Threat Analysis Alert Dataset" tabIndex={0}>
                   <table className="w-full text-left text-xs font-sans">
-                    <thead className="bg-slate-950/60 text-slate-400 uppercase tracking-wider font-mono text-[11px] border-b border-slate-800">
+                    <thead className="bg-[#F8FAFC] text-[#525252] uppercase tracking-wider font-sans font-semibold text-[11px] border-b border-[#E5E5E5]">
                       <tr>
                         <th className="py-2.5 px-3">Timestamp</th>
                         <th className="py-2.5 px-3">Severity</th>
@@ -339,13 +339,13 @@ export const ThreatAnalysisPage: FC<ThreatAnalysisPageProps> = ({ dataService })
                         <th className="py-2.5 px-3 text-right">Inspect</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800/60">
+                    <tbody className="divide-y divide-[#E5E5E5] bg-[#FFFFFF]">
                       {alertsResponse.data.map((alert) => (
                         <tr
                           key={`${alert.flow_id}-${alert.timestamp}-${alert.threat_class}`}
-                          className="hover:bg-slate-800/30 transition-colors"
+                          className="hover:bg-[#F5F5F5] transition-colors"
                         >
-                          <td className="py-2.5 px-3 font-mono text-slate-300 whitespace-nowrap">
+                          <td className="py-2.5 px-3 font-mono text-[#0A0A0A] whitespace-nowrap">
                             {alert.timestamp}
                           </td>
                           <td className="py-2.5 px-3 whitespace-nowrap">
@@ -360,32 +360,32 @@ export const ThreatAnalysisPage: FC<ThreatAnalysisPageProps> = ({ dataService })
                           <td className="py-2.5 px-3 font-mono whitespace-nowrap">
                             <Link
                               to={`/flows/${alert.flow_id}`}
-                              className="text-cyan-400 hover:underline"
+                              className="text-[#2563EB] hover:underline"
                               title={`Inspect flow ${alert.flow_id}`}
                             >
                               {alert.flow_id}
                             </Link>
                           </td>
-                          <td className="py-2.5 px-3 font-mono text-slate-300 whitespace-nowrap">
+                          <td className="py-2.5 px-3 font-mono text-[#525252] whitespace-nowrap">
                             {alert.source_ip || 'N/A'}
                           </td>
-                          <td className="py-2.5 px-3 font-mono text-slate-300 whitespace-nowrap">
+                          <td className="py-2.5 px-3 font-mono text-[#525252] whitespace-nowrap">
                             {alert.destination_ip || 'N/A'}
                           </td>
-                          <td className="py-2.5 px-3 font-mono text-slate-300 whitespace-nowrap">
+                          <td className="py-2.5 px-3 font-mono text-[#525252] whitespace-nowrap">
                             {alert.protocol || 'N/A'}
                           </td>
-                          <td className="py-2.5 px-3 font-mono text-slate-400 text-[11px] whitespace-nowrap">
+                          <td className="py-2.5 px-3 font-mono text-slate-500 text-[11px] whitespace-nowrap">
                             {alert.model_version || 'N/A'}
                           </td>
                           <td className="py-2.5 px-3 text-right whitespace-nowrap">
                             <button
                               type="button"
                               onClick={() => handleInspectAlert(alert)}
-                              className="inline-flex items-center gap-1 rounded border border-slate-700 bg-slate-800 px-2 py-1 text-[11px] text-slate-200 hover:bg-slate-700 focus-ring font-mono"
+                              className="inline-flex items-center gap-1 rounded-md border border-[#E5E5E5] bg-[#FFFFFF] px-2.5 py-1 text-xs text-[#0A0A0A] hover:bg-[#F5F5F5] focus-ring font-sans font-medium transition-colors"
                               title="Inspect evidence details"
                             >
-                              <Eye className="h-3 w-3" />
+                              <Eye className="h-3.5 w-3.5 text-[#2563EB]" />
                               <span>Details</span>
                             </button>
                           </td>

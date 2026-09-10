@@ -41,8 +41,8 @@ export const StatusPill: FC<StatusPillProps> = ({
 
   const sizeClasses =
     size === 'sm'
-      ? 'px-2 py-0.5 text-[11px] gap-1 font-mono'
-      : 'px-2.5 py-1 text-xs gap-1.5 font-mono';
+      ? 'px-2 py-0.5 text-[11px] gap-1 font-sans font-semibold tracking-wide'
+      : 'px-2.5 py-1 text-xs gap-1.5 font-sans font-semibold tracking-wide';
 
   const iconSizes = size === 'sm' ? 'h-3 w-3' : 'h-3.5 w-3.5';
 
@@ -50,9 +50,10 @@ export const StatusPill: FC<StatusPillProps> = ({
     case 'HEALTHY':
       return (
         <span
-          className={`inline-flex items-center rounded border font-semibold border-emerald-500/40 bg-emerald-950/30 text-emerald-400 select-none ${sizeClasses} ${className}`}
+          className={`inline-flex items-center rounded-md border font-semibold border-emerald-200 bg-emerald-50 text-emerald-700 select-none ${sizeClasses} ${className}`}
         >
-          <CheckCircle2 className={`${iconSizes} text-emerald-400 shrink-0`} aria-hidden="true" />
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 shrink-0" aria-hidden="true" />
+          <CheckCircle2 className={`${iconSizes} text-emerald-600 shrink-0`} aria-hidden="true" />
           <span>HEALTHY</span>
         </span>
       );
@@ -60,9 +61,9 @@ export const StatusPill: FC<StatusPillProps> = ({
     case 'DEGRADED':
       return (
         <span
-          className={`inline-flex items-center rounded border font-semibold border-amber-500/40 bg-amber-950/30 text-amber-400 select-none ${sizeClasses} ${className}`}
+          className={`inline-flex items-center rounded-md border font-semibold border-amber-200 bg-amber-50 text-amber-700 select-none ${sizeClasses} ${className}`}
         >
-          <AlertTriangle className={`${iconSizes} text-amber-400 shrink-0`} aria-hidden="true" />
+          <AlertTriangle className={`${iconSizes} text-amber-600 shrink-0`} aria-hidden="true" />
           <span>DEGRADED</span>
         </span>
       );
@@ -70,9 +71,9 @@ export const StatusPill: FC<StatusPillProps> = ({
     case 'ERROR':
       return (
         <span
-          className={`inline-flex items-center rounded border font-semibold border-rose-500/40 bg-rose-950/30 text-rose-400 select-none ${sizeClasses} ${className}`}
+          className={`inline-flex items-center rounded-md border font-semibold border-rose-200 bg-rose-50 text-rose-700 select-none ${sizeClasses} ${className}`}
         >
-          <XCircle className={`${iconSizes} text-rose-400 shrink-0`} aria-hidden="true" />
+          <XCircle className={`${iconSizes} text-rose-600 shrink-0`} aria-hidden="true" />
           <span>ERROR</span>
         </span>
       );
@@ -80,9 +81,9 @@ export const StatusPill: FC<StatusPillProps> = ({
     case 'UNAVAILABLE':
       return (
         <span
-          className={`inline-flex items-center rounded border font-semibold border-slate-600/40 bg-slate-800/40 text-slate-400 select-none ${sizeClasses} ${className}`}
+          className={`inline-flex items-center rounded-md border font-semibold border-slate-200 bg-slate-100 text-slate-600 select-none ${sizeClasses} ${className}`}
         >
-          <HelpCircle className={`${iconSizes} text-slate-400 shrink-0`} aria-hidden="true" />
+          <HelpCircle className={`${iconSizes} text-slate-500 shrink-0`} aria-hidden="true" />
           <span>UNAVAILABLE</span>
         </span>
       );
@@ -90,9 +91,10 @@ export const StatusPill: FC<StatusPillProps> = ({
     case 'CONNECTED':
       return (
         <span
-          className={`inline-flex items-center rounded border font-semibold border-emerald-500/40 bg-emerald-950/30 text-emerald-400 select-none ${sizeClasses} ${className}`}
+          className={`inline-flex items-center rounded-md border font-semibold border-emerald-200 bg-emerald-50 text-emerald-700 select-none ${sizeClasses} ${className}`}
         >
-          <Wifi className={`${iconSizes} text-emerald-400 shrink-0`} aria-hidden="true" />
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 shrink-0" aria-hidden="true" />
+          <Wifi className={`${iconSizes} text-emerald-600 shrink-0`} aria-hidden="true" />
           <span>CONNECTED</span>
         </span>
       );
@@ -100,9 +102,9 @@ export const StatusPill: FC<StatusPillProps> = ({
     case 'DISCONNECTED':
       return (
         <span
-          className={`inline-flex items-center rounded border font-semibold border-rose-500/40 bg-rose-950/30 text-rose-400 select-none ${sizeClasses} ${className}`}
+          className={`inline-flex items-center rounded-md border font-semibold border-rose-200 bg-rose-50 text-rose-700 select-none ${sizeClasses} ${className}`}
         >
-          <WifiOff className={`${iconSizes} text-rose-400 shrink-0`} aria-hidden="true" />
+          <WifiOff className={`${iconSizes} text-rose-600 shrink-0`} aria-hidden="true" />
           <span>DISCONNECTED</span>
         </span>
       );
@@ -110,9 +112,9 @@ export const StatusPill: FC<StatusPillProps> = ({
     case 'RECONNECTING':
       return (
         <span
-          className={`inline-flex items-center rounded border font-semibold border-amber-500/40 bg-amber-950/30 text-amber-400 select-none ${sizeClasses} ${className}`}
+          className={`inline-flex items-center rounded-md border font-semibold border-amber-200 bg-amber-50 text-amber-700 select-none ${sizeClasses} ${className}`}
         >
-          <RefreshCw className={`${iconSizes} text-amber-400 shrink-0`} aria-hidden="true" />
+          <RefreshCw className={`${iconSizes} text-amber-600 animate-spin shrink-0`} aria-hidden="true" />
           <span>RECONNECTING</span>
         </span>
       );
@@ -120,9 +122,10 @@ export const StatusPill: FC<StatusPillProps> = ({
     case 'LIVE':
       return (
         <span
-          className={`inline-flex items-center rounded border font-semibold border-emerald-500/40 bg-emerald-950/30 text-emerald-400 select-none ${sizeClasses} ${className}`}
+          className={`inline-flex items-center rounded-md border font-semibold border-emerald-200 bg-emerald-50 text-emerald-700 shadow-2xs select-none ${sizeClasses} ${className}`}
         >
-          <Radio className={`${iconSizes} text-emerald-400 shrink-0`} aria-hidden="true" />
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 shrink-0" aria-hidden="true" />
+          <Radio className={`${iconSizes} text-emerald-600 shrink-0`} aria-hidden="true" />
           <span>LIVE</span>
         </span>
       );
@@ -130,9 +133,9 @@ export const StatusPill: FC<StatusPillProps> = ({
     case 'REPLAY':
       return (
         <span
-          className={`inline-flex items-center rounded border font-semibold border-cyan-500/40 bg-cyan-950/30 text-cyan-400 select-none ${sizeClasses} ${className}`}
+          className={`inline-flex items-center rounded-md border font-semibold border-blue-200 bg-blue-50 text-[#2563EB] select-none ${sizeClasses} ${className}`}
         >
-          <PlayCircle className={`${iconSizes} text-cyan-400 shrink-0`} aria-hidden="true" />
+          <PlayCircle className={`${iconSizes} text-[#2563EB] shrink-0`} aria-hidden="true" />
           <span>REPLAY</span>
         </span>
       );
@@ -162,9 +165,9 @@ export const StatusPill: FC<StatusPillProps> = ({
     default:
       return (
         <span
-          className={`inline-flex items-center rounded border font-semibold border-slate-600/40 bg-slate-800/40 text-slate-400 select-none ${sizeClasses} ${className}`}
+          className={`inline-flex items-center rounded-md border font-semibold border-slate-200 bg-slate-100 text-slate-700 select-none ${sizeClasses} ${className}`}
         >
-          <Activity className={`${iconSizes} text-slate-400 shrink-0`} aria-hidden="true" />
+          <Activity className={`${iconSizes} text-slate-500 shrink-0`} aria-hidden="true" />
           <span>{displayStatus}</span>
         </span>
       );

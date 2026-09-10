@@ -83,17 +83,17 @@ export const FlowsPage: FC<FlowsPageProps> = ({ dataService }) => {
       />
 
       {/* Filter Control Bar */}
-      <div className="rounded-lg border border-[var(--panel-border)] bg-[var(--panel-bg)] p-4 space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--panel-border-subtle)] pb-3">
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-300 font-mono">
-            <Filter className="h-4 w-4 text-cyan-400" />
+      <div className="rounded-xl border border-[#E5E5E5] bg-[#FFFFFF] p-4 space-y-4 shadow-2xs">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E5E5E5] pb-3">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#0A0A0A] font-sans">
+            <Filter className="h-4 w-4 text-[#2563EB]" />
             <span>Flow Filters</span>
           </div>
 
           <button
             type="button"
             onClick={handleResetFilters}
-            className="inline-flex items-center gap-1.5 rounded border border-slate-700 bg-slate-900 px-2.5 py-1 text-xs font-mono text-slate-300 hover:bg-slate-800 hover:text-slate-100 focus-ring"
+            className="inline-flex items-center gap-1.5 rounded-md border border-[#E5E5E5] bg-[#FFFFFF] px-2.5 py-1 text-xs font-sans text-[#525252] hover:bg-[#F5F5F5] hover:text-[#0A0A0A] focus-ring"
           >
             <RotateCcw className="h-3 w-3" />
             <span>Reset Filters</span>
@@ -103,11 +103,11 @@ export const FlowsPage: FC<FlowsPageProps> = ({ dataService }) => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs font-sans">
           {/* IP Search Filter */}
           <div className="space-y-1.5">
-            <label htmlFor="flow-ip-search" className="block text-[11px] font-mono text-slate-400">
+            <label htmlFor="flow-ip-search" className="block text-xs font-medium font-sans text-[#525252]">
               Search IP Address
             </label>
             <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-500" />
+              <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
               <input
                 id="flow-ip-search"
                 type="text"
@@ -116,14 +116,14 @@ export const FlowsPage: FC<FlowsPageProps> = ({ dataService }) => {
                   handleFilterChange(setSearchIpInput, e.target.value)
                 }
                 placeholder="Filter by source or dest IP..."
-                className="w-full rounded border border-slate-700 bg-slate-950/80 py-1.5 pl-8 pr-3 font-mono text-xs text-slate-200 placeholder-slate-500 focus-ring"
+                className="w-full rounded-lg border border-[#D4D4D4] bg-[#FFFFFF] py-1.5 pl-8 pr-3 font-mono text-xs text-[#0A0A0A] placeholder-slate-400 focus-ring"
               />
             </div>
           </div>
 
           {/* Protocol Filter */}
           <div className="space-y-1.5">
-            <label htmlFor="flow-protocol-filter" className="block text-[11px] font-mono text-slate-400">
+            <label htmlFor="flow-protocol-filter" className="block text-xs font-medium font-sans text-[#525252]">
               Protocol
             </label>
             <select
@@ -132,7 +132,7 @@ export const FlowsPage: FC<FlowsPageProps> = ({ dataService }) => {
               onChange={(e: ChangeEvent<HTMLSelectElement>) =>
                 handleFilterChange(setProtocolFilter, e.target.value)
               }
-              className="w-full rounded border border-slate-700 bg-slate-950/80 py-1.5 px-2.5 font-mono text-xs text-slate-200 focus-ring"
+              className="w-full rounded-lg border border-[#D4D4D4] bg-[#FFFFFF] py-1.5 px-2.5 font-sans text-xs text-[#0A0A0A] focus-ring"
             >
               {PROTOCOL_OPTIONS.map((proto) => (
                 <option key={proto} value={proto}>
@@ -144,7 +144,7 @@ export const FlowsPage: FC<FlowsPageProps> = ({ dataService }) => {
 
           {/* Direction Filter */}
           <div className="space-y-1.5">
-            <label htmlFor="flow-direction-filter" className="block text-[11px] font-mono text-slate-400">
+            <label htmlFor="flow-direction-filter" className="block text-xs font-medium font-sans text-[#525252]">
               Direction
             </label>
             <select
@@ -153,7 +153,7 @@ export const FlowsPage: FC<FlowsPageProps> = ({ dataService }) => {
               onChange={(e: ChangeEvent<HTMLSelectElement>) =>
                 handleFilterChange(setDirectionFilter, e.target.value)
               }
-              className="w-full rounded border border-slate-700 bg-slate-950/80 py-1.5 px-2.5 font-mono text-xs text-slate-200 focus-ring"
+              className="w-full rounded-lg border border-[#D4D4D4] bg-[#FFFFFF] py-1.5 px-2.5 font-sans text-xs text-[#0A0A0A] focus-ring"
             >
               {DIRECTION_OPTIONS.map((dir) => (
                 <option key={dir} value={dir}>
@@ -169,22 +169,22 @@ export const FlowsPage: FC<FlowsPageProps> = ({ dataService }) => {
       <DataStateWrapper state={dataState} onRetry={fetchFlows}>
         {flowsResponse && (
           <div className="space-y-4">
-            <div className="rounded-lg border border-[var(--panel-border)] bg-[var(--panel-bg)] p-5 space-y-4">
-              <div className="flex items-center justify-between border-b border-[var(--panel-border-subtle)] pb-3">
-                <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wider font-mono flex items-center gap-2">
-                  <Network className="h-4 w-4 text-cyan-400" />
+            <div className="rounded-xl border border-[#E5E5E5] bg-[#FFFFFF] p-5 space-y-4 shadow-2xs">
+              <div className="flex items-center justify-between border-b border-[#E5E5E5] pb-3">
+                <h3 className="text-base font-bold text-[#0A0A0A] font-sans flex items-center gap-2">
+                  <Network className="h-4 w-4 text-[#2563EB]" />
                   Observed Passive Flows ({flowsResponse.total})
                 </h3>
               </div>
 
               {flowsResponse.data.length === 0 ? (
-                <div className="py-8 text-center text-xs text-slate-400 font-sans">
+                <div className="py-8 text-center text-xs text-[#525252] font-sans">
                   No passive network flows found matching criteria.
                 </div>
               ) : (
-                <div className="overflow-x-auto focus-ring" role="region" aria-label="Passive Network Flow Dataset" tabIndex={0}>
+                <div className="overflow-x-auto focus-ring rounded-lg border border-[#E5E5E5]" role="region" aria-label="Passive Network Flow Dataset" tabIndex={0}>
                   <table className="w-full text-left text-xs font-sans">
-                    <thead className="bg-slate-950/60 text-slate-400 uppercase tracking-wider font-mono text-[11px] border-b border-slate-800">
+                    <thead className="bg-[#F8FAFC] text-[#525252] uppercase tracking-wider font-sans font-semibold text-[11px] border-b border-[#E5E5E5]">
                       <tr>
                         <th className="py-2.5 px-3">Timestamp</th>
                         <th className="py-2.5 px-3">Flow ID</th>
@@ -200,16 +200,16 @@ export const FlowsPage: FC<FlowsPageProps> = ({ dataService }) => {
                         <th className="py-2.5 px-3 text-right">Inspect</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800/60">
+                    <tbody className="divide-y divide-[#E5E5E5] bg-[#FFFFFF]">
                       {flowsResponse.data.map((flow) => (
                         <tr
                           key={flow.flow_id}
-                          className="hover:bg-slate-800/30 transition-colors"
+                          className="hover:bg-[#F5F5F5] transition-colors"
                         >
-                          <td className="py-2.5 px-3 font-mono text-slate-300 whitespace-nowrap">
+                          <td className="py-2.5 px-3 font-mono text-[#0A0A0A] whitespace-nowrap">
                             {flow.timestamp}
                           </td>
-                          <td className="py-2.5 px-3 font-mono whitespace-nowrap font-medium text-cyan-400">
+                          <td className="py-2.5 px-3 font-mono whitespace-nowrap font-semibold text-[#2563EB]">
                             <Link
                               to={`/flows/${flow.flow_id}`}
                               className="hover:underline"
@@ -218,37 +218,37 @@ export const FlowsPage: FC<FlowsPageProps> = ({ dataService }) => {
                               {flow.flow_id}
                             </Link>
                           </td>
-                          <td className="py-2.5 px-3 font-mono text-slate-300 whitespace-nowrap">
+                          <td className="py-2.5 px-3 font-mono text-[#525252] whitespace-nowrap">
                             {flow.src_ip}
                           </td>
-                          <td className="py-2.5 px-3 font-mono text-slate-400 whitespace-nowrap">
+                          <td className="py-2.5 px-3 font-mono text-slate-500 whitespace-nowrap">
                             {flow.src_port !== null && flow.src_port !== undefined ? flow.src_port : 'N/A'}
                           </td>
-                          <td className="py-2.5 px-3 font-mono text-slate-300 whitespace-nowrap">
+                          <td className="py-2.5 px-3 font-mono text-[#525252] whitespace-nowrap">
                             {flow.dst_ip}
                           </td>
-                          <td className="py-2.5 px-3 font-mono text-slate-400 whitespace-nowrap">
+                          <td className="py-2.5 px-3 font-mono text-slate-500 whitespace-nowrap">
                             {flow.dst_port !== null && flow.dst_port !== undefined ? flow.dst_port : 'N/A'}
                           </td>
-                          <td className="py-2.5 px-3 font-mono text-slate-300 whitespace-nowrap font-bold">
+                          <td className="py-2.5 px-3 font-mono text-[#0A0A0A] whitespace-nowrap font-bold">
                             {flow.protocol}
                           </td>
                           <td className="py-2.5 px-3 whitespace-nowrap">
                             {flow.direction ? (
                               <StatusPill status={flow.direction} size="sm" />
                             ) : (
-                              <span className="text-[11px] font-mono text-slate-500">N/A</span>
+                              <span className="text-[11px] font-mono text-slate-400">N/A</span>
                             )}
                           </td>
-                          <td className="py-2.5 px-3 font-mono text-slate-300 whitespace-nowrap">
+                          <td className="py-2.5 px-3 font-mono text-[#525252] whitespace-nowrap">
                             {flow.duration !== null && flow.duration !== undefined ? `${flow.duration}s` : 'N/A'}
                           </td>
-                          <td className="py-2.5 px-3 font-mono text-slate-300 whitespace-nowrap">
+                          <td className="py-2.5 px-3 font-mono text-[#525252] whitespace-nowrap">
                             {flow.packet_count !== null && flow.packet_count !== undefined
                               ? flow.packet_count.toLocaleString()
                               : 'N/A'}
                           </td>
-                          <td className="py-2.5 px-3 font-mono text-slate-300 whitespace-nowrap">
+                          <td className="py-2.5 px-3 font-mono text-[#525252] whitespace-nowrap">
                             {flow.byte_count !== null && flow.byte_count !== undefined
                               ? flow.byte_count.toLocaleString()
                               : 'N/A'}
@@ -256,10 +256,10 @@ export const FlowsPage: FC<FlowsPageProps> = ({ dataService }) => {
                           <td className="py-2.5 px-3 text-right whitespace-nowrap">
                             <Link
                               to={`/flows/${flow.flow_id}`}
-                              className="inline-flex items-center gap-1 rounded border border-slate-700 bg-slate-800 px-2 py-1 text-[11px] text-slate-200 hover:bg-slate-700 focus-ring font-mono"
+                              className="inline-flex items-center gap-1 rounded-md border border-[#E5E5E5] bg-[#FFFFFF] px-2.5 py-1 text-xs text-[#0A0A0A] hover:bg-[#F5F5F5] focus-ring font-sans font-medium transition-colors"
                               title="Inspect flow details"
                             >
-                              <Eye className="h-3 w-3" />
+                              <Eye className="h-3.5 w-3.5 text-[#2563EB]" />
                               <span>Inspect</span>
                             </Link>
                           </td>

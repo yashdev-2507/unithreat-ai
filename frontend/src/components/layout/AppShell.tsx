@@ -28,7 +28,7 @@ export const AppShell: FC<AppShellProps> = ({ dataService }) => {
   };
 
   return (
-    <div className="flex h-screen w-screen flex-col overflow-hidden bg-[var(--bg-dark-soc)] text-slate-100 font-sans">
+    <div className="flex h-screen w-screen flex-col overflow-hidden bg-[#F8FAFC] text-[#0A0A0A] font-sans">
       {/* Top Header Bar */}
       <TopHeader
         onToggleSidebar={toggleSidebar}
@@ -42,7 +42,7 @@ export const AppShell: FC<AppShellProps> = ({ dataService }) => {
         <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
 
         {/* Main Content Viewport */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-[var(--bg-dark-soc)] focus:outline-none min-w-0">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-[#F8FAFC] bg-dotted-grid focus:outline-none min-w-0">
           <Outlet />
         </main>
       </div>
