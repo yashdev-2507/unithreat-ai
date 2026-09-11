@@ -1,4 +1,4 @@
-/* Clean SOC Console root resets */
+/* Clean SaaS Console root resets */
 html,
 body,
 #root {
@@ -6,7 +6,7 @@ body,
   height: 100%;
   margin: 0;
   padding: 0;
-  background-color: var(--bg-dark-soc, #0b0f17);
-  color: #f8fafc;
+  background-color: var(--bg-dark-soc, #F8FAFC);
+  color: #0A0A0A;
   overflow: hidden;
 }

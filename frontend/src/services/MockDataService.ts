@@ -19,6 +19,7 @@ import {
   MOCK_PIPELINE_HEALTH,
   MOCK_DATA_ENVIRONMENT_BANNER,
 } from './mockData';
+import { matchThreatClass } from '../constants/threats';
 
 /**
  * Deterministic, contract-compliant mock data service for UniThreat AI frontend.
@@ -71,7 +72,7 @@ export class MockDataService implements DataService {
     }
 
     if (params.threat_class) {
-      filtered = filtered.filter((a) => a.threat_class === params.threat_class);
+      filtered = filtered.filter((a) => matchThreatClass(a.threat_class, params.threat_class!));
     }
 
     if (params.min_confidence !== undefined) {

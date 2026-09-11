@@ -1,6 +1,17 @@
-import { useEffect, useRef, type FC } from 'react';
+import { useEffect, useRef, useState, type FC } from 'react';
 import { Link } from 'react-router-dom';
-import { X, ExternalLink, ShieldAlert, Cpu, Network, FileText, CheckCircle, Info } from 'lucide-react';
+import {
+  X,
+  ExternalLink,
+  ShieldAlert,
+  Cpu,
+  Network,
+  FileText,
+  CheckCircle,
+  Info,
+  Copy,
+  Check,
+} from 'lucide-react';
 import type { ThreatAlert } from '../../types/alert';
 import { SeverityBadge } from '../common/SeverityBadge';
 import { ThreatClassBadge } from '../common/ThreatClassBadge';
@@ -17,9 +28,34 @@ export const AlertDetailDrawer: FC<AlertDetailDrawerProps> = ({
   isOpen,
   onClose,
 }) => {
-  const drawerRef = useRef<HTMLElement | null>(null);
+  const drawerRef = useRef<HTMLDivElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+      const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+      setPrefersReducedMotion(mediaQuery.matches);
+
+      const handleChange = () => setPrefersReducedMotion(mediaQuery.matches);
+      mediaQuery.addEventListener('change', handleChange);
+      return () => mediaQuery.removeEventListener('change', handleChange);
+    }
+  }, []);
+
+  const handleCopyText = async (text: string, fieldName: string) => {
+    try {
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        await navigator.clipboard.writeText(text);
+        setCopiedField(fieldName);
+        setTimeout(() => setCopiedField(null), 2000);
+      }
+    } catch {
+      // Do not show "Copied!" if clipboard writing fails
+    }
+  };
 
   useEffect(() => {
     if (isOpen && alert) {
@@ -28,7 +64,7 @@ export const AlertDetailDrawer: FC<AlertDetailDrawerProps> = ({
         previousFocusRef.current = document.activeElement;
       }
 
-      // 2. Move focus into drawer
+      // 2. Move focus into modal
       const focusTimer = setTimeout(() => {
         if (closeButtonRef.current) {
           closeButtonRef.current.focus();
@@ -53,7 +89,7 @@ export const AlertDetailDrawer: FC<AlertDetailDrawerProps> = ({
             drawerRef.current.querySelectorAll<HTMLElement>(focusableSelectors)
           );
 
-          // Filter visible elements (compatible with both browser layout and jsdom)
+          // Filter visible elements
           const focusableElements = rawElements.filter((el) => {
             if (el.offsetWidth > 0 || el.offsetHeight > 0 || el.getClientRects().length > 0) return true;
             try {
@@ -74,7 +110,6 @@ export const AlertDetailDrawer: FC<AlertDetailDrawerProps> = ({
           const lastElement = focusableElements[focusableElements.length - 1];
 
           if (e.shiftKey) {
-            // Shift + Tab: if on first element or focus is outside drawer
             if (
               document.activeElement === firstElement ||
               !drawerRef.current.contains(document.activeElement)
@@ -83,7 +118,6 @@ export const AlertDetailDrawer: FC<AlertDetailDrawerProps> = ({
               lastElement.focus();
             }
           } else {
-            // Tab: if on last element or focus is outside drawer
             if (
               document.activeElement === lastElement ||
               !drawerRef.current.contains(document.activeElement)
@@ -100,7 +134,6 @@ export const AlertDetailDrawer: FC<AlertDetailDrawerProps> = ({
       return () => {
         clearTimeout(focusTimer);
         document.removeEventListener('keydown', handleGlobalKeyDown);
-        // Restore focus when closing/unmounting
         if (previousFocusRef.current && previousFocusRef.current.isConnected) {
           previousFocusRef.current.focus();
         }
@@ -111,35 +144,35 @@ export const AlertDetailDrawer: FC<AlertDetailDrawerProps> = ({
   if (!isOpen || !alert) return null;
 
   return (
-    <>
-      {/* Backdrop */}
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-xs transition-opacity overflow-hidden"
+      onClick={onClose}
+      aria-hidden="true"
+    >
+      {/* Centered Modal Container */}
       <div
-        className="fixed inset-0 z-40 bg-black/70 backdrop-blur-xs transition-opacity"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-
-      {/* Slide-over Drawer Panel */}
-      <aside
         ref={drawerRef}
-        className="fixed inset-y-0 right-0 z-50 flex w-full max-w-xl flex-col border-l border-[var(--panel-border)] bg-[var(--panel-bg)] text-slate-100 shadow-2xl transition-transform duration-300 ease-in-out focus:outline-none"
+        onClick={(e) => e.stopPropagation()}
+        className={`relative w-full max-w-[840px] max-h-[88vh] flex flex-col rounded-xl border border-[#E5E5E5] bg-[#FFFFFF] text-[#0A0A0A] shadow-2xl overflow-hidden focus:outline-none ${
+          prefersReducedMotion ? '' : 'transition-all duration-200 ease-out'
+        }`}
         aria-labelledby="alert-drawer-title"
         role="dialog"
         aria-modal="true"
         tabIndex={-1}
       >
-        {/* Drawer Header */}
-        <div className="flex items-center justify-between border-b border-[var(--panel-border)] px-5 py-4 bg-slate-950/40">
-          <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded bg-rose-950/80 text-rose-400 border border-rose-800/50">
-              <ShieldAlert className="h-4 w-4" />
+        {/* Fixed Modal Header */}
+        <div className="flex items-center justify-between border-b border-[#E5E5E5] px-5 py-4 bg-[#F8FAFC] shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 text-rose-600 border border-rose-200 shadow-2xs">
+              <ShieldAlert className="h-4.5 w-4.5" />
             </div>
             <div>
-              <h2 id="alert-drawer-title" className="text-sm font-bold text-slate-100 tracking-wide font-sans">
+              <h2 id="alert-drawer-title" className="text-base sm:text-lg font-bold text-[#0A0A0A] font-sans tracking-tight">
                 Alert Detail Inspector
               </h2>
-              <p className="text-[11px] font-mono text-slate-400">
-                Flow: {alert.flow_id}
+              <p className="text-[11px] font-mono text-slate-500">
+                Flow: <span className="text-[#2563EB] font-semibold">{alert.flow_id}</span>
               </p>
             </div>
           </div>
@@ -148,106 +181,127 @@ export const AlertDetailDrawer: FC<AlertDetailDrawerProps> = ({
             ref={closeButtonRef}
             type="button"
             onClick={onClose}
-            className="rounded p-1.5 text-slate-400 hover:bg-slate-800 hover:text-slate-100 focus-ring"
-            aria-label="Close detail inspector drawer"
+            className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100 hover:text-[#0A0A0A] focus-ring transition-colors"
+            aria-label="Close alert detail inspector"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        {/* Drawer Content Viewport */}
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+        {/* Scrollable Investigation Content */}
+        <div className="flex-1 overflow-y-auto px-5 py-5 space-y-5">
           {/* Key Classification Banner */}
-          <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[var(--panel-border)] bg-slate-900/60 p-3.5">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#E5E5E5] bg-[#F8FAFC] p-4">
+            <div className="flex flex-wrap items-center gap-2">
               <SeverityBadge severity={alert.severity} size="md" />
               <ThreatClassBadge threatClass={alert.threat_class} size="md" />
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs text-slate-400 font-sans">Confidence:</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-sans text-[#525252]">Confidence:</span>
               <ConfidenceGauge confidence={alert.confidence} size="md" />
             </div>
           </div>
 
-          {/* Network Flow Parameters */}
-          <div className="rounded-lg border border-[var(--panel-border)] bg-slate-900/40 p-4 space-y-3">
-            <h3 className="text-xs font-semibold text-slate-300 uppercase tracking-wider font-mono flex items-center gap-1.5">
-              <Network className="h-3.5 w-3.5 text-cyan-400" />
-              Network Flow Metadata
-            </h3>
+          {/* Network Flow Metadata Grid */}
+          <div className="rounded-xl border border-[#E5E5E5] bg-[#F8FAFC] p-4 space-y-3">
+            <div className="flex items-center justify-between border-b border-[#E5E5E5] pb-2.5">
+              <h3 className="text-xs font-bold text-[#0A0A0A] uppercase tracking-wider font-sans flex items-center gap-1.5">
+                <Network className="h-3.5 w-3.5 text-[#2563EB]" />
+                Network Flow Metadata
+              </h3>
 
-            <div className="grid grid-cols-2 gap-3 text-xs font-mono">
-              <div>
-                <span className="text-slate-400 block text-[11px] font-sans">Timestamp</span>
-                <span className="text-slate-200">{alert.timestamp}</span>
+              <button
+                type="button"
+                onClick={() => handleCopyText(alert.flow_id, 'flow_id')}
+                className="inline-flex items-center gap-1 text-[11px] font-mono text-slate-500 hover:text-[#2563EB] focus-ring"
+                title="Copy Flow ID"
+              >
+                {copiedField === 'flow_id' ? (
+                  <>
+                    <Check className="h-3 w-3 text-emerald-600" />
+                    <span className="text-emerald-600">Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-3 w-3" />
+                    <span>Copy Flow ID</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs font-mono">
+              <div className="rounded-lg border border-[#E5E5E5] bg-[#FFFFFF] p-2.5">
+                <span className="text-slate-500 block text-[10px] font-sans">Timestamp</span>
+                <span className="text-[#0A0A0A] font-semibold">{alert.timestamp}</span>
               </div>
-              <div>
-                <span className="text-slate-400 block text-[11px] font-sans">Flow ID</span>
-                <span className="text-cyan-400 font-medium break-all">{alert.flow_id}</span>
+              <div className="rounded-lg border border-[#E5E5E5] bg-[#FFFFFF] p-2.5">
+                <span className="text-slate-500 block text-[10px] font-sans">Flow ID</span>
+                <span className="text-[#2563EB] font-bold break-all">{alert.flow_id}</span>
               </div>
-              <div>
-                <span className="text-slate-400 block text-[11px] font-sans">Source IP</span>
-                <span className="text-slate-200">{alert.source_ip || 'N/A'}</span>
+              <div className="rounded-lg border border-[#E5E5E5] bg-[#FFFFFF] p-2.5">
+                <span className="text-slate-500 block text-[10px] font-sans">Protocol</span>
+                <span className="text-[#0A0A0A] font-semibold">{alert.protocol || 'N/A'}</span>
               </div>
-              <div>
-                <span className="text-slate-400 block text-[11px] font-sans">Destination IP</span>
-                <span className="text-slate-200">{alert.destination_ip || 'N/A'}</span>
+              <div className="rounded-lg border border-[#E5E5E5] bg-[#FFFFFF] p-2.5">
+                <span className="text-slate-500 block text-[10px] font-sans">Source IP</span>
+                <span className="text-[#0A0A0A] font-semibold">{alert.source_ip || 'N/A'}</span>
               </div>
-              <div>
-                <span className="text-slate-400 block text-[11px] font-sans">Protocol</span>
-                <span className="text-slate-200">{alert.protocol || 'N/A'}</span>
+              <div className="rounded-lg border border-[#E5E5E5] bg-[#FFFFFF] p-2.5">
+                <span className="text-slate-500 block text-[10px] font-sans">Destination IP</span>
+                <span className="text-[#0A0A0A] font-semibold">{alert.destination_ip || 'N/A'}</span>
               </div>
-              <div>
-                <span className="text-slate-400 block text-[11px] font-sans">Model Version</span>
-                <span className="text-slate-300 flex items-center gap-1">
-                  <Cpu className="h-3 w-3 text-slate-400" />
+              <div className="rounded-lg border border-[#E5E5E5] bg-[#FFFFFF] p-2.5">
+                <span className="text-slate-500 block text-[10px] font-sans">Model Version</span>
+                <span className="text-[#2563EB] flex items-center gap-1 font-semibold">
+                  <Cpu className="h-3 w-3 text-[#2563EB]" />
                   {alert.model_version || 'N/A'}
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Backend Explanation Callout */}
+          {/* Backend Intelligence Explanation */}
           {alert.explanation && (
-            <div className="rounded-lg border border-cyan-900/40 bg-cyan-950/20 p-3.5">
-              <h4 className="text-xs font-semibold text-cyan-300 font-sans mb-1 flex items-center gap-1.5">
-                <FileText className="h-3.5 w-3.5 text-cyan-400" />
+            <div className="rounded-xl border border-blue-200 bg-[#EFF6FF] p-4 space-y-1">
+              <h4 className="text-xs font-bold text-[#2563EB] font-sans flex items-center gap-1.5">
+                <FileText className="h-3.5 w-3.5 text-[#2563EB]" />
                 Backend Intelligence Explanation
               </h4>
-              <p className="text-xs text-slate-300 font-sans leading-relaxed break-words">
+              <p className="text-xs text-[#525252] font-sans leading-relaxed break-words">
                 {alert.explanation}
               </p>
             </div>
           )}
 
           {/* Evidence Signals List */}
-          <div className="space-y-2.5">
-            <h3 className="text-xs font-semibold text-slate-300 uppercase tracking-wider font-mono flex items-center gap-1.5">
-              <ShieldAlert className="h-3.5 w-3.5 text-amber-400" />
+          <div className="space-y-3">
+            <h3 className="text-xs font-bold text-[#0A0A0A] uppercase tracking-wider font-sans flex items-center gap-1.5">
+              <ShieldAlert className="h-3.5 w-3.5 text-amber-600" />
               Evidence Signals ({alert.evidence.length})
             </h3>
 
             {alert.evidence.length === 0 ? (
-              <div className="rounded border border-[var(--panel-border)] p-3 text-xs text-slate-400 font-sans">
+              <div className="rounded-xl border border-[#E5E5E5] p-3.5 text-xs text-slate-500 font-sans bg-[#F8FAFC]">
                 No evidence signals attached to this alert.
               </div>
             ) : (
               alert.evidence.map((sig, idx) => (
                 <div
                   key={`${sig.signal_name}-${idx}`}
-                  className="rounded-lg border border-[var(--panel-border)] bg-slate-900/40 p-3.5 text-xs space-y-2"
+                  className="rounded-xl border border-[#E5E5E5] bg-[#F8FAFC] p-3.5 text-xs space-y-2.5"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-mono font-semibold text-slate-200 break-all">
+                    <span className="font-mono font-bold text-[#0A0A0A] break-all text-xs">
                       {sig.signal_name}
                     </span>
                     <span
-                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono uppercase border ${
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono uppercase font-bold border ${
                         sig.direction === 'supporting'
-                          ? 'border-amber-800/50 bg-amber-950/30 text-amber-300'
+                          ? 'border-amber-200 bg-amber-50 text-amber-700'
                           : sig.direction === 'contradicting'
-                          ? 'border-blue-800/50 bg-blue-950/30 text-blue-300'
-                          : 'border-slate-700 bg-slate-800 text-slate-300'
+                          ? 'border-blue-200 bg-blue-50 text-[#2563EB]'
+                          : 'border-slate-200 bg-slate-100 text-slate-700'
                       }`}
                     >
                       {sig.direction === 'supporting' && <CheckCircle className="h-3 w-3" />}
@@ -256,14 +310,14 @@ export const AlertDetailDrawer: FC<AlertDetailDrawerProps> = ({
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 text-[11px] font-mono text-slate-400">
+                  <div className="grid grid-cols-2 gap-2 text-[11px] font-mono text-slate-600 bg-[#FFFFFF] p-2 rounded-lg border border-[#E5E5E5]">
                     <div>
-                      <span>Observed Value: </span>
-                      <strong className="text-slate-200 break-all">{sig.value}</strong>
+                      <span>Value: </span>
+                      <strong className="text-[#2563EB] break-all">{sig.value}</strong>
                     </div>
                     <div>
                       <span>Reliability: </span>
-                      <strong className="text-slate-200">
+                      <strong className="text-emerald-600">
                         {Math.round(sig.reliability * 100)}%
                       </strong>
                     </div>
@@ -271,11 +325,11 @@ export const AlertDetailDrawer: FC<AlertDetailDrawerProps> = ({
 
                   {Boolean(sig.supporting_features?.length) && (
                     <div className="pt-1 flex flex-wrap items-center gap-1.5">
-                      <span className="text-[10px] text-slate-400 font-sans">Features:</span>
+                      <span className="text-[10px] text-slate-500 font-sans">Supporting Features:</span>
                       {sig.supporting_features?.map((feat) => (
                         <span
                           key={feat}
-                          className="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-mono text-cyan-300 border border-slate-700 break-all"
+                          className="rounded bg-[#FFFFFF] px-1.5 py-0.5 text-[10px] font-mono text-[#2563EB] border border-[#E5E5E5] break-all font-semibold"
                         >
                           {feat}
                         </span>
@@ -288,18 +342,18 @@ export const AlertDetailDrawer: FC<AlertDetailDrawerProps> = ({
           </div>
         </div>
 
-        {/* Drawer Footer Navigation */}
-        <div className="border-t border-[var(--panel-border)] bg-slate-950/60 p-4">
+        {/* Fixed Modal Footer Navigation */}
+        <div className="border-t border-[#E5E5E5] bg-[#F8FAFC] p-4 shrink-0">
           <Link
             to={`/alerts/flow/${alert.flow_id}`}
             onClick={onClose}
-            className="flex w-full items-center justify-center gap-2 rounded-md border border-cyan-800/50 bg-cyan-950/40 px-4 py-2 text-xs font-semibold text-cyan-300 hover:bg-cyan-900/50 focus-ring transition-colors"
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#2563EB] bg-[#2563EB] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#1D4ED8] focus-ring transition-colors shadow-2xs font-mono"
           >
             <span>View Full Flow Investigation</span>
-            <ExternalLink className="h-4 w-4" />
+            <ExternalLink className="h-4 w-4 text-white" />
           </Link>
         </div>
-      </aside>
-    </>
+      </div>
+    </div>
   );
 };

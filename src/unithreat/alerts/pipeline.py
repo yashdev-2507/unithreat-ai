@@ -15,7 +15,12 @@ from typing import Any, Protocol
 from unithreat.alerts.dedup import AlertDeduplicator
 from unithreat.alerts.fusion import AlertFusionEngine
 from unithreat.alerts.models import ThreatAlert
-from unithreat.alerts.store import BoundedAlertStore, BoundedFlowStore
+from unithreat.alerts.store import (
+    BoundedAlertStore,
+    BoundedFeatureStore,
+    BoundedFlowStore,
+    BoundedPredictionStore,
+)
 from unithreat.detection.engine import DetectionEngine
 from unithreat.features.extractor import FeatureExtractor
 from unithreat.features.models import FeatureRecord
@@ -44,6 +49,8 @@ class IntegratedPipeline:
         deduplicator: AlertDeduplicator | None = None,
         alert_store: BoundedAlertStore | None = None,
         flow_store: BoundedFlowStore | None = None,
+        feature_store: BoundedFeatureStore | None = None,
+        prediction_store: BoundedPredictionStore | None = None,
         stream_manager: AlertBroadcaster | Any | None = None,
         enable_windowing: bool = True,
     ) -> None:
@@ -54,6 +61,8 @@ class IntegratedPipeline:
         self.deduplicator = deduplicator or AlertDeduplicator()
         self.alert_store = alert_store or BoundedAlertStore()
         self.flow_store = flow_store or BoundedFlowStore()
+        self.feature_store = feature_store or BoundedFeatureStore()
+        self.prediction_store = prediction_store or BoundedPredictionStore()
         self.stream_manager = stream_manager
 
         self.total_flows_processed: int = 0
@@ -103,6 +112,7 @@ class IntegratedPipeline:
 
         # 2. Extract normalized features
         record = self.extractor.extract(flow_obj)
+        self.feature_store.add(record)
 
         # 3. Statistical threat detection
         det_results = self.detection_engine.process(record)
@@ -112,6 +122,8 @@ class IntegratedPipeline:
         if self.ml_engine is not None:
             try:
                 ml_pred = self.ml_engine.predict(record)
+                if ml_pred is not None:
+                    self.prediction_store.add(ml_pred)
             except Exception as exc:
                 logger.warning("ML inference failed on flow %s: %s", record.flow_id, exc)
 

@@ -111,7 +111,7 @@ if (typeof globalThis.document === 'undefined' || !(globalThis.document as any).
       const findMatch = (el: SimpleElement): SimpleElement | null => {
         if (selector === '[role="dialog"]' && el.getAttribute('role') === 'dialog') return el;
         if (selector === '#alert-drawer-title' && el.getAttribute('id') === 'alert-drawer-title') return el;
-        if (selector.includes('aria-label') && el.tagName === 'BUTTON' && el.getAttribute('aria-label') === 'Close detail inspector drawer') return el;
+        if (selector.includes('aria-label') && el.tagName === 'BUTTON' && (el.getAttribute('aria-label') === 'Close alert detail inspector' || el.getAttribute('aria-label') === 'Close detail inspector drawer')) return el;
         for (const child of el.childNodes) {
           if (child.nodeType === 1) {
             const match = findMatch(child as SimpleElement);
@@ -345,7 +345,7 @@ describe('Phase 5G — Accessibility, Focus Management & Polish Test Suite', () 
         await new Promise((resolve) => setTimeout(resolve, 30));
       });
 
-      const closeBtn = (container as any)?.querySelector('button[aria-label="Close detail inspector drawer"]');
+      const closeBtn = (container as any)?.querySelector('button[aria-label="Close alert detail inspector"]') || (container as any)?.querySelector('button[aria-label="Close detail inspector drawer"]');
       expect(document.activeElement).toBe(closeBtn);
     });
 

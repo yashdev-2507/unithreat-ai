@@ -12,6 +12,8 @@ import threading
 from typing import Any
 
 from unithreat.alerts.models import ThreatAlert
+from unithreat.features.models import FeatureRecord
+from unithreat.ml.models import MLPrediction
 
 
 class BoundedAlertStore:
@@ -125,7 +127,8 @@ class BoundedAlertStore:
 class BoundedFlowStore:
     """
     Thread-safe, bounded in-memory store for recent raw flow records.
-    Supports GET /flows/{flow_id}.
+    Supports GET /flows and GET /flows/{flow_id}.
+    Guarantees oldest flows are automatically evicted when capacity is reached.
     """
 
     def __init__(self, max_flows: int = 2000) -> None:
@@ -134,7 +137,7 @@ class BoundedFlowStore:
         self._by_flow_id: dict[str, dict[str, Any]] = {}
         self._lock = threading.Lock()
 
-    def add(self, flow: dict[str, Any]) -> None:
+    def add(self, flow: dict[str, Any]) -> dict[str, Any]:
         flow_dict = dict(flow)
         with self._lock:
             if len(self._flows) == self.max_flows:
@@ -148,10 +151,38 @@ class BoundedFlowStore:
             if flow_id:
                 self._by_flow_id[flow_id] = flow_dict
 
+        return flow_dict
+
     def get(self, flow_id: str) -> dict[str, Any] | None:
         with self._lock:
             val = self._by_flow_id.get(flow_id)
             return dict(val) if val is not None else None
+
+    def get_all(
+        self,
+        protocol: str | None = None,
+        src_ip: str | None = None,
+        dst_ip: str | None = None,
+        limit: int | None = None,
+    ) -> list[dict[str, Any]]:
+        """
+        Query stored recent flows with optional filtering. Returns newest flows first.
+        """
+        with self._lock:
+            results: list[dict[str, Any]] = []
+            for flow in reversed(self._flows):
+                if protocol and flow.get("protocol", "").upper() != protocol.upper():
+                    continue
+                if src_ip and flow.get("src_ip") != src_ip:
+                    continue
+                if dst_ip and flow.get("dst_ip") != dst_ip:
+                    continue
+
+                results.append(dict(flow))
+                if limit and len(results) >= limit:
+                    break
+
+            return results
 
     def count(self) -> int:
         with self._lock:
@@ -160,4 +191,92 @@ class BoundedFlowStore:
     def clear(self) -> None:
         with self._lock:
             self._flows.clear()
+            self._by_flow_id.clear()
+
+
+class BoundedFeatureStore:
+    """
+    Thread-safe, bounded in-memory store for recent extracted feature records.
+    Supports GET /features/{flow_id}.
+    Guarantees oldest records are automatically evicted when capacity is reached.
+    """
+
+    def __init__(self, max_features: int = 2000) -> None:
+        self.max_features = max_features
+        self._records: deque[dict[str, Any]] = deque(maxlen=max_features)
+        self._by_flow_id: dict[str, dict[str, Any]] = {}
+        self._lock = threading.Lock()
+
+    def add(self, record: FeatureRecord | dict[str, Any]) -> dict[str, Any]:
+        record_dict = record.model_dump() if isinstance(record, FeatureRecord) else dict(record)
+        with self._lock:
+            if len(self._records) == self.max_features:
+                oldest = self._records[0]
+                old_id = oldest.get("flow_id")
+                if old_id and old_id in self._by_flow_id:
+                    del self._by_flow_id[old_id]
+
+            self._records.append(record_dict)
+            flow_id = record_dict.get("flow_id")
+            if flow_id:
+                self._by_flow_id[flow_id] = record_dict
+
+        return record_dict
+
+    def get(self, flow_id: str) -> dict[str, Any] | None:
+        with self._lock:
+            val = self._by_flow_id.get(flow_id)
+            return dict(val) if val is not None else None
+
+    def count(self) -> int:
+        with self._lock:
+            return len(self._records)
+
+    def clear(self) -> None:
+        with self._lock:
+            self._records.clear()
+            self._by_flow_id.clear()
+
+
+class BoundedPredictionStore:
+    """
+    Thread-safe, bounded in-memory store for recent ML prediction records.
+    Supports GET /predictions/{flow_id}.
+    Guarantees oldest predictions are automatically evicted when capacity is reached.
+    """
+
+    def __init__(self, max_predictions: int = 2000) -> None:
+        self.max_predictions = max_predictions
+        self._predictions: deque[dict[str, Any]] = deque(maxlen=max_predictions)
+        self._by_flow_id: dict[str, dict[str, Any]] = {}
+        self._lock = threading.Lock()
+
+    def add(self, prediction: MLPrediction | dict[str, Any]) -> dict[str, Any]:
+        pred_dict = prediction.to_contract_dict() if isinstance(prediction, MLPrediction) else dict(prediction)
+        with self._lock:
+            if len(self._predictions) == self.max_predictions:
+                oldest = self._predictions[0]
+                old_id = oldest.get("flow_id")
+                if old_id and old_id in self._by_flow_id:
+                    del self._by_flow_id[old_id]
+
+            self._predictions.append(pred_dict)
+            flow_id = pred_dict.get("flow_id")
+            if flow_id:
+                self._by_flow_id[flow_id] = pred_dict
+
+        return pred_dict
+
+    def get(self, flow_id: str) -> dict[str, Any] | None:
+        with self._lock:
+            val = self._by_flow_id.get(flow_id)
+            return dict(val) if val is not None else None
+
+    def count(self) -> int:
+        with self._lock:
+            return len(self._predictions)
+
+    def clear(self) -> None:
+        with self._lock:
+            self._predictions.clear()
             self._by_flow_id.clear()

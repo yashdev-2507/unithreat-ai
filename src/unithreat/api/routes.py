@@ -8,7 +8,10 @@ Endpoints:
   - GET  /health
   - GET  /alerts
   - GET  /alerts/{flow_id}
+  - GET  /flows
   - GET  /flows/{flow_id}
+  - GET  /features/{flow_id}
+  - GET  /predictions/{flow_id}
   - GET  /stats
   - POST /ingest/flow
   - WS   /ws/alerts
@@ -70,6 +73,24 @@ def create_router(pipeline: IntegratedPipeline) -> APIRouter:
             raise HTTPException(status_code=404, detail=f"Alert with flow_id '{flow_id}' not found.")
         return alert
 
+    @router.get("/flows")
+    async def get_flows(
+        protocol: str | None = Query(None, description="Filter by protocol (e.g. TCP, UDP)"),
+        src_ip: str | None = Query(None, description="Filter by source IP"),
+        dst_ip: str | None = Query(None, description="Filter by destination IP"),
+        limit: int = Query(100, ge=1, le=2000, description="Maximum number of flows to return (newest first)"),
+    ) -> list[dict[str, Any]]:
+        """
+        Query stored recent passive flows. Returns newest flows first.
+        Each flow strictly conforms to contracts/flow-schema.json.
+        """
+        return pipeline.flow_store.get_all(
+            protocol=protocol,
+            src_ip=src_ip,
+            dst_ip=dst_ip,
+            limit=limit,
+        )
+
     @router.get("/flows/{flow_id}")
     async def get_flow_by_id(flow_id: str) -> dict[str, Any]:
         """Retrieve raw stored flow by flow_id."""
@@ -77,6 +98,28 @@ def create_router(pipeline: IntegratedPipeline) -> APIRouter:
         if flow is None:
             raise HTTPException(status_code=404, detail=f"Flow with flow_id '{flow_id}' not found in recent buffer.")
         return flow
+
+    @router.get("/features/{flow_id}")
+    async def get_features_by_flow_id(flow_id: str) -> dict[str, Any]:
+        """
+        Retrieve extracted network feature record by flow_id.
+        Strictly conforms to contracts/feature-schema.json.
+        """
+        feature_record = pipeline.feature_store.get(flow_id)
+        if feature_record is None:
+            raise HTTPException(status_code=404, detail=f"Feature record for flow_id '{flow_id}' not found.")
+        return feature_record
+
+    @router.get("/predictions/{flow_id}")
+    async def get_prediction_by_flow_id(flow_id: str) -> dict[str, Any]:
+        """
+        Retrieve ML prediction result by flow_id.
+        Strictly conforms to contracts/ml-prediction-schema.json.
+        """
+        prediction = pipeline.prediction_store.get(flow_id)
+        if prediction is None:
+            raise HTTPException(status_code=404, detail=f"ML prediction for flow_id '{flow_id}' not found.")
+        return prediction
 
     @router.get("/stats")
     async def get_stats() -> dict[str, Any]:

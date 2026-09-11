@@ -10,7 +10,7 @@
     "detected_threat_classes": [],
     "mean_confidence": 0.0,
     "severities": [],
-    "mean_latency_ms": 11.745,
+    "mean_latency_ms": 11.73,
     "evidence_signals": [],
     "false_positives": 0,
     "misses": 0,
@@ -33,7 +33,7 @@
       "CRITICAL",
       "HIGH"
     ],
-    "mean_latency_ms": 12.088,
+    "mean_latency_ms": 11.943,
     "evidence_signals": [
       "destination_concentration",
       "distributed_source_diversity",
@@ -63,7 +63,7 @@
     "severities": [
       "HIGH"
     ],
-    "mean_latency_ms": 11.904,
+    "mean_latency_ms": 11.966,
     "evidence_signals": [
       "ml_hypothesis"
     ],
@@ -89,7 +89,7 @@
       "CRITICAL",
       "MEDIUM"
     ],
-    "mean_latency_ms": 11.635,
+    "mean_latency_ms": 11.997,
     "evidence_signals": [
       "connection_repetition",
       "ml_classifier_divergence",
@@ -118,7 +118,7 @@
     "severities": [
       "CRITICAL"
     ],
-    "mean_latency_ms": 11.865,
+    "mean_latency_ms": 12.346,
     "evidence_signals": [
       "abnormal_query_length",
       "high_dns_entropy",
@@ -147,7 +147,7 @@
       "CRITICAL",
       "HIGH"
     ],
-    "mean_latency_ms": 11.843,
+    "mean_latency_ms": 11.705,
     "evidence_signals": [
       "abnormal_vowel_distribution",
       "consonant_cluster_anomaly",
@@ -177,7 +177,7 @@
     "severities": [
       "HIGH"
     ],
-    "mean_latency_ms": 12.483,
+    "mean_latency_ms": 12.081,
     "evidence_signals": [
       "connection_repetition",
       "large_outbound_volume",
@@ -210,7 +210,7 @@
       "HIGH",
       "MEDIUM"
     ],
-    "mean_latency_ms": 11.943,
+    "mean_latency_ms": 11.851,
     "evidence_signals": [
       "anomalous_packet_timing_profile",
       "destination_concentration",

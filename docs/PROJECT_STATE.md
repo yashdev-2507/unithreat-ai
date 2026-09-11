@@ -1,15 +1,15 @@
 # UniThreat AI Project State
 
 ## Current Phase
-Phase 5.2 — Lab Traffic Validation (Complete) → Transition to Phase 3: Dashboard & Presentation
+Phase 6.2 — Frontend Integration (Complete) → Transition to Phase 7: SOC Dashboard UI/UX Polish
 
 ## Current Task
-Phase 5.2: Lab Traffic Validation — **COMPLETED**
+Frontend Integration (`HttpDataService`, `WebSocketService`, Realtime Alert Streaming, Proxy Configuration) — **COMPLETED**
 
 ## Overall Progress
-- **Tasks Completed**: 8 (Tasks 1, 2, 3, 4, 4.1, 5, 6, Phase 5.1 Benchmarking, Phase 5.2 Lab Traffic Validation)
-- **Status**: Complete end-to-end streaming detection pipeline has been empirically benchmarked (131.71 flows/sec) and validated against both live loopback lab socket traffic and modeled replayed threat activity across all 8 scenarios. 100% detection rate on attack classes, 0 false positives on benign traffic, strict schema conformity, and passive boundary guarantees verified.
-- **Next Task**: Task 7 — Modern Dashboard UI (React/Vite) consuming REST and WebSocket endpoints.
+- **Tasks Completed**: 10 (Tasks 1, 2, 3, 4, 4.1, 5, 6, Phase 5.1 Benchmarking, Phase 5.2 Lab Traffic Validation, Phase 6.1 Backend API Gaps, Phase 6.2 Frontend Integration)
+- **Status**: React SOC dashboard is fully integrated with the live FastAPI backend. `HttpDataService` handles all REST queries (`/health`, `/stats`, `/alerts`, `/flows`, `/features/{flow_id}`, `/predictions/{flow_id}`). `WebSocketService` handles real-time alerts streaming from `WS /ws/alerts` with reconnect backoff and bounded client buffers. 125 frontend unit tests pass, production bundle builds cleanly, 10-checkpoint live end-to-end integration verified, and all 310 backend tests pass.
+- **Next Task**: Phase 7 — SOC Dashboard UI/UX Refinement and SOC Analyst Workflows.
 
 ---
 
@@ -55,11 +55,28 @@ Phase 5.2: Lab Traffic Validation — **COMPLETED**
    - Confirmed throughput of 131.71 flows/sec (mean latency 7.59 ms, P95 11.44 ms) on 10,000 continuous mixed flows.
    - Verified strict ring-buffer boundedness (`BoundedAlertStore` 1000, `BoundedFlowStore` 2000).
 
-8. **Phase 5.2 — Lab Traffic Validation (This Milestone)**
+8. **Phase 5.2 — Lab Traffic Validation**
    - Built reproducible validation workflow: `scripts/validate_lab_traffic.py`.
    - Evaluated pipeline on both live loopback lab sockets and modeled replayed threat traffic.
    - Verified 8/8 scenarios, 0 false positives, 0 misses, and strict schema conformance.
    - Added automated tests in `tests/test_lab_validation.py` (7 tests).
+
+9. **Phase 6.1 — Backend API Gaps Resolved**
+   - Implemented `GET /flows` querying `BoundedFlowStore.get_all(...)` with newest-first ordering and query filters (`protocol`, `src_ip`, `dst_ip`, `limit`), strictly conforming to `contracts/flow-schema.json`.
+   - Implemented `BoundedFeatureStore` (thread-safe ring buffer, `deque(maxlen=2000)`) and `GET /features/{flow_id}` endpoint strictly conforming to `contracts/feature-schema.json`. Returns 404 if not found.
+   - Implemented `BoundedPredictionStore` (thread-safe ring buffer, `deque(maxlen=2000)`) and `GET /predictions/{flow_id}` endpoint strictly conforming to `contracts/ml-prediction-schema.json`. Preserves `threat_class`, uncalibrated `score`, `model_version`, and `calibrated: false`. Returns 404 if not found.
+   - Integrated both stores into `IntegratedPipeline.process_flow` so feature extractions and ML inference predictions are retained under bounded memory guarantees.
+   - Preserved all existing endpoints (`/health`, `/alerts`, `/alerts/{flow_id}`, `/flows/{flow_id}`, `/stats`, `/ingest/flow`, `/ws/alerts`).
+   - Added 19 new automated tests covering empty listings, filtering, pagination, 404 handling, contract schema validation, ring-buffer capacity eviction, and thread safety.
+
+10. **Phase 6.2 — Frontend Integration (DataService & Realtime WebSocket)**
+    - Implemented `HttpDataService` (`frontend/src/services/HttpDataService.ts`) providing full contract-backed implementation of all 7 `DataService` methods without inventing intelligence or fields. Truthful error/disconnected states on backend failure.
+    - Implemented `WebSocketService` (`frontend/src/services/WebSocketService.ts`) for real-time alert ingestion from `WS /ws/alerts` with exponential backoff auto-reconnect, status state machine (`CONNECTING`, `LIVE`, `RECONNECTING`, `DISCONNECTED`), bounded ring buffer (100 alerts), and deduplication.
+    - Configured Vite dev server reverse proxy (`frontend/vite.config.ts`) routing `/api` and `/ws` seamlessly to `http://localhost:8000`.
+    - Wired global WebSocket lifecycle and live connection indicator into `AppShell` and `TopHeader`.
+    - Integrated live WebSocket updates into `AlertsPage` and `OverviewPage` so analysts receive streamed detections without polling or full page reload.
+    - Created unit tests (`httpDataService.test.ts` and `webSocketService.test.ts`) bringing frontend test suite from 102 to 125 tests (all passing).
+    - Validated live end-to-end integration (`scripts/test_e2e_live.mjs`) across 10 verification checkpoints against running uvicorn backend.
 
 ---
 
@@ -94,48 +111,83 @@ Evaluated on 2026-09-08 using `scripts/validate_lab_traffic.py`.
 
 ---
 
-## Files Created/Modified
+### Files Created/Modified
 
-### Phase 5.2 Created Files:
-- `scripts/validate_lab_traffic.py` — Lab validation runner with live socket harness and model replay.
-- `tests/test_lab_validation.py` — Automated verification tests for lab traffic generation and passive boundary (7 tests).
-- `artifacts/validation/lab_validation_report.json` — Machine-readable validation metrics per scenario.
-- `artifacts/validation/lab_validation_summary.md` — Markdown validation table and findings.
+### Phase 6.2 Created Files:
+- `frontend/src/services/HttpDataService.ts` — Real HTTP data service implementing all 7 `DataService` contract methods against backend REST endpoints.
+- `frontend/src/services/WebSocketService.ts` — Resilient WebSocket client connecting to `/ws/alerts` with auto-reconnect, bounded queue (100 alerts), and deduplication.
+- `frontend/src/services/index.ts` — DataService factory exporting `defaultDataService` (HttpDataService by default, MockDataService if `VITE_USE_MOCK=true`).
+- `frontend/src/tests/httpDataService.test.ts` — 14 automated unit tests verifying REST mappings, error propagation, 404 handling, and empty data handling.
+- `frontend/src/tests/webSocketService.test.ts` — 9 automated unit tests verifying connection lifecycle, backoff reconnect, alert buffering, and listener callbacks.
+- `frontend/scripts/test_e2e_live.mjs` — Standalone end-to-end integration test validating live backend REST endpoints and WebSocket alert streaming.
+- `scripts/verify_realtime_demo.py` — Realtime streaming verification script executing one-by-one flow replay with delay and WebSocket broadcast verification.
+- `scripts/replay_multi_threats.py` — Multi-scenario live replay demonstration streaming benign, port scan, C2, DGA, encrypted anomaly, and DNS tunneling.
 
-### Modified Files:
-- `docs/PROJECT_STATE.md` — Updated with Phase 5.2 validation matrix, findings, and evidence distinction.
+### Phase 6.2 Modified Files:
+- `frontend/vite.config.ts` — Added dev server reverse proxy for `/api` and `/ws` pointing to `http://localhost:8000`.
+- `frontend/src/routes/AppRoutes.tsx` — Parameterized `dataService` prop defaulting to `defaultDataService`.
+- `frontend/src/components/layout/AppShell.tsx` — Wired global `WebSocketService` lifecycle and passed dataService down to top header.
+- `frontend/src/components/layout/TopHeader.tsx` — Realtime stream indicator badge and backend connection mode display.
+- `frontend/src/pages/AlertsPage.tsx` — Subscribed to real-time alerts via `WebSocketService` for live stream updates without page refresh.
+- `frontend/src/pages/OverviewPage.tsx` — Subscribed to real-time alerts via `WebSocketService` for live metric counters without page refresh.
+
+### Phase 6.1 Modified Files:
+- `src/unithreat/alerts/__init__.py` — Exported `BoundedFeatureStore` and `BoundedPredictionStore`.
+- `src/unithreat/alerts/pipeline.py` — Integrated feature and prediction ring buffers in `IntegratedPipeline.process_flow`.
+- `src/unithreat/alerts/store.py` — Implemented `BoundedFeatureStore` and `BoundedPredictionStore`.
+- `src/unithreat/api/routes.py` — Implemented `GET /flows`, `GET /features/{flow_id}`, and `GET /predictions/{flow_id}`.
+- `tests/alerts/test_store.py` — 10 new tests for feature and prediction stores.
+- `tests/api/test_routes.py` — 9 new tests for REST endpoints and schema conformance.
 
 ---
 
 ## Architecture Currently Implemented
 
 ```text
-Lab Sockets / Replay Source / Ingest Adapter
-                      │
-                      ▼ (Read-Only Boundary)
-             FeatureExtractor (37 features)
-                      │
-        ┌─────────────┴─────────────┐
-        ▼                           ▼
-DetectionEngine             MLInferenceEngine
-(Statistical/Behavioral)    (Random Forest Baseline)
-        │                           │
-        └─────────────┬─────────────┘
-                      ▼
-              AlertFusionEngine
-       (4 Explicit Deterministic Cases)
-                      │
-                      ▼
-              AlertDeduplicator
-          (LRU bounded, 60s window)
-                      │
-        ┌─────────────┴─────────────┐
-        ▼                           ▼
-BoundedAlertStore           AlertStreamManager
-(deque maxlen=1000)         (asyncio.Queue maxsize=100)
-        │                           │
-        ▼                           ▼
-REST API (FastAPI)          WebSocket (/ws/alerts)
+               Lab Sockets / Replay Source / Passive Ingestion
+                                     │
+                                     ▼ (Strict Read-Only Boundary)
+                            BoundedFlowStore (deque maxlen=2000)
+                                     │
+                                     ▼
+                            FeatureExtractor (37 features)
+                                     │
+                        ┌────────────┴────────────┐
+                        ▼                         ▼
+               BoundedFeatureStore        DetectionEngine & MLInferenceEngine
+               (deque maxlen=2000)                │
+                                                  ▼
+                                          BoundedPredictionStore
+                                          (deque maxlen=2000)
+                                                  │
+                                                  ▼
+                                          AlertFusionEngine
+                                   (4 Explicit Deterministic Cases)
+                                                  │
+                                                  ▼
+                                          AlertDeduplicator
+                                      (LRU bounded, 60s window)
+                                                  │
+                                    ┌─────────────┴─────────────┐
+                                    ▼                           ▼
+                            BoundedAlertStore           AlertStreamManager
+                            (deque maxlen=1000)         (asyncio.Queue maxsize=100)
+                                    │                           │
+                                    ▼                           ▼
+                            REST API (FastAPI)          WebSocket (/ws/alerts)
+                                    │                           │
+                                    └─────────────┬─────────────┘
+                                                  ▼
+                                        Vite Proxy (/api, /ws)
+                                                  │
+                                    ┌─────────────┴─────────────┐
+                                    ▼                           ▼
+                            HttpDataService             WebSocketService
+                            (7 REST methods)            (Live Alert Stream)
+                                    │                           │
+                                    └─────────────┬─────────────┘
+                                                  ▼
+                                       React SOC Console (UI)
 ```
 
 ---
@@ -151,11 +203,71 @@ All payloads conform strictly to schemas located in `contracts/`:
 
 ---
 
+## API Endpoints Available
+
+1. `GET  /health`: Pipeline operational health status.
+2. `GET  /stats`: Aggregated detection and flow counts.
+3. `GET  /alerts`: Standardized threat alerts (newest first, filtered by `threat_class`, `severity`, `min_confidence`, `limit`).
+4. `GET  /alerts/{flow_id}`: Standardized alert lookup by `flow_id` (404 if not found).
+5. `GET  /flows`: Recent raw passive flows (newest first, filtered by `protocol`, `src_ip`, `dst_ip`, `limit`).
+6. `GET  /flows/{flow_id}`: Flow record lookup by `flow_id` (404 if not found).
+7. `GET  /features/{flow_id}`: Extracted feature record lookup by `flow_id` conforming to `feature-schema.json` (404 if not found).
+8. `GET  /predictions/{flow_id}`: ML prediction lookup by `flow_id` conforming to `ml-prediction-schema.json` (404 if not found).
+9. `POST /ingest/flow`: Flow ingestion endpoint (passive read-only memory boundary).
+10. `WS   /ws/alerts`: Real-time streaming WebSocket endpoint.
+
+---
+
+## Real-Time Streaming & End-to-End Demo Verification
+
+Evaluated on 2026-09-09 against running FastAPI backend (`http://127.0.0.1:8000`) and Vite dev proxy (`http://localhost:5173`).
+
+### Controlled Real-Time Traffic Replay Execution:
+1. **DDoS Scenario (Primary Controlled Test)**:
+   - Generated 40 flows (`seed=42`) using `scripts/generate_traffic.py --scenario ddos --count 40 --seed 42 --output /tmp/unithreat_realtime_ddos.jsonl`.
+   - Replayed line-by-line sequentially via `POST http://127.0.0.1:8000/ingest/flow` with 150ms inter-flow delays (streaming throughput ~5.6 flows/sec).
+   - Ingestion: 40/40 flows accepted.
+   - Alerts Generated: 40 alerts (Flows 1–4: ML hypothesis `HIGH` severity conf 0.68–0.75; Flows 5–40: Statistical rate threshold + ML fusion `CRITICAL` severity conf 0.9625–0.9925, 6 evidence signals).
+   - WebSocket Broadcast: 40/40 alerts received live in real time over `ws://127.0.0.1:8000/ws/alerts`.
+   - Schema Conformance: 100% valid against `contracts/alert-schema.json`.
+   - Detector Overlap: `DDOS`: 40 (`CRITICAL`: 36, `HIGH`: 4).
+
+2. **Port Scan Scenario (Secondary Controlled Test)**:
+   - Generated 40 flows (`seed=42`) via `scripts/generate_traffic.py --scenario port_scan --count 40 --seed 42 --output /tmp/unithreat_realtime_portscan.jsonl`.
+   - Replayed line-by-line sequentially with 150ms delays.
+   - Ingestion: 40/40 flows accepted.
+   - Alerts Generated: 1 alert (`RECONNAISSANCE`, `HIGH` severity, confidence 0.75, source fan-out and unique destination ports evidence).
+   - WebSocket Broadcast: 1/1 alert received live over `ws://127.0.0.1:8000/ws/alerts`.
+   - Schema Conformance: 100% valid against `contracts/alert-schema.json`.
+
+3. **DGA Scenario (Third Controlled Test)**:
+   - Generated 30 flows (`seed=42`) via `scripts/generate_traffic.py --scenario dga --count 30 --seed 42 --output /tmp/unithreat_realtime_dga.jsonl`.
+   - Replayed line-by-line sequentially with 150ms delays.
+   - Ingestion: 30/30 flows accepted.
+   - Alerts Generated: 13 alerts (`DGA`, 3 `CRITICAL`, 10 `HIGH`, confidence 0.6640–0.9850, 5 evidence signals: `dga_lexical_anomaly`, `high_dns_entropy`, `consonant_cluster_anomaly`, `abnormal_vowel_distribution`, `ml_classifier_support`).
+   - WebSocket Broadcast: 13/13 alerts received live over `ws://127.0.0.1:8000/ws/alerts`.
+   - Schema Conformance: 100% valid against `contracts/alert-schema.json`.
+
+### Backend Live State:
+- `GET /health`: `total_flows_processed: 150`, `total_alerts_stored: 54`, `active_stream_subscribers: 5`.
+- `GET /stats`: `{"total_flows_processed": 150, "total_alerts_stored": 54, "by_threat_class": {"DDOS": 40, "RECONNAISSANCE": 1, "DGA": 13}, "by_severity": {"LOW": 0, "MEDIUM": 0, "HIGH": 15, "CRITICAL": 39}}`.
+- `GET /alerts`: Verified recent alerts returned with evidence signals and explanations.
+- `GET /flows/{flow_id}`: Verified retrieval of raw passive flow (`flow-schema.json`).
+- `GET /features/{flow_id}`: Verified retrieval of 59 passive flow features (`feature-schema.json`).
+- `GET /predictions/{flow_id}`: Verified retrieval of ML prediction records (`ml-prediction-schema.json`, score, class, `calibrated: false`).
+
+### Frontend Live Dashboard:
+- `http://localhost:5173`: Connected directly to live backend and WebSocket stream.
+- Dynamic Live Updates: `WebSocketService` receives streamed alerts and updates `AlertsPage` and `OverviewPage` metric counters and tables in real time without manual page refresh.
+- Data Integrity: Zero mock data used. Zero TestClient instances. Strict passive read-only boundary maintained.
+
+---
+
 ## Tests
 
-Test suite covers all layers:
-- `tests/alerts/`: 20 tests (fusion, dedup, store)
-- `tests/api/`: 11 tests (REST routes, WebSocket streaming, end-to-end flow to API)
+### Backend Test Suite (Pytest)
+- `tests/alerts/`: 31 tests (fusion, dedup, store: alerts, flows, features, predictions)
+- `tests/api/`: 23 tests (REST routes, WebSocket streaming, end-to-end flow to API)
 - `tests/ml/`: 17 tests (dataset generation, feature extraction, training, inference, integration)
 - `tests/detection/`: 120 tests (DDoS, port scan, C2 beacon, DNS tunnel/DGA, exfiltration, encrypted anomaly)
 - `tests/features/`: 72 tests (extractors, rolling window, models)
@@ -163,62 +275,59 @@ Test suite covers all layers:
 - `tests/generator/`: 8 tests (scenarios, variation, reproducibility)
 - `tests/test_benchmark.py`: 6 tests (benchmark utilities, metrics, environment detection)
 - `tests/test_lab_validation.py`: 7 tests (lab traffic generator, scenario runner, passive boundary)
+**Total Backend Test Count: 310 tests (all passing).**
 
-**Total Test Count: 291 tests.**
+### Frontend Test Suite (Vitest)
+- `frontend/src/tests/httpDataService.test.ts`: 14 tests (REST API mapping, 404s, failure handling, search params)
+- `frontend/src/tests/webSocketService.test.ts`: 9 tests (connection state machine, backoff reconnect, buffering, listeners)
+- `frontend/src/tests/` (existing): 102 tests (components, navigation, badges, formatters, tables, error boundaries)
+**Total Frontend Test Count: 125 tests (all passing).**
+
+### Live E2E Integration Suite
+- `frontend/scripts/test_e2e_live.mjs`: 10/10 checkpoints passed against live uvicorn server.
 
 ---
 
 ## Latest Test Result
 
-Executed on: 2026-09-08
-Command: `.venv/bin/python -m pytest tests/`
-Result:
+Executed on: 2026-09-09
+Backend:
 ```text
-======================= 291 passed, 2 warnings in 6.03s ========================
+======================= 310 passed, 2 warnings in 4.36s ========================
 ```
-
----
-
-## Git Status
-
-Uncommitted changes (not committed or pushed per instructions):
+Frontend:
 ```text
- M docs/PROJECT_STATE.md
- M docs/architecture.md
-?? artifacts/benchmarks/
-?? artifacts/validation/
-?? scripts/benchmark_pipeline.py
-?? scripts/validate_lab_traffic.py
-?? tests/test_benchmark.py
-?? tests/test_lab_validation.py
+ Test Files  9 passed (9)
+      Tests  125 passed (125)
+```
+Frontend Build:
+```text
+✓ built in 453ms
 ```
 
 ---
 
 ## Known Issues
 
-None. All 291 tests pass cleanly.
-Starlette TestClient emits two harmless deprecation warnings regarding `httpx` vs `httpx2` and `anyio.abc.BlockingPortal`. These do not affect runtime API or WebSocket operation.
+None. All 310 backend and 125 frontend tests pass cleanly. Zero TypeScript compilation errors.
 
 ---
 
 ## Next Exact Step
 
-**Task 7 — Modern Dashboard UI**:
-1. Inspect requirements for dashboard views:
-   - Overview metrics (total flows, total alerts, breakdown by threat class and severity).
-   - Real-time live alert feed connecting to `WS /ws/alerts`.
-   - Alert details drawer displaying forensic evidence signals, confidence, and explanations.
-   - Flow replay controls calling `POST /ingest/flow`.
-2. Scaffold React/Vite frontend in `frontend/` or equivalent workspace directory.
-3. Verify end-to-end user interaction between UI, FastAPI backend, and detection pipeline.
+**Phase 7 — SOC Dashboard UI/UX Polish & Analyst Workflow**:
+1. Review analyst workflows (drill-down from Alert → Flow → Extracted Features → ML Prediction).
+2. Enhance visual hierarchy and dark-first SOC theme consistency (semantic design tokens, high contrast, information density).
+3. Ensure all states (loading, empty, error, backend disconnected) render technical, honest feedback.
+4. Prepare end-to-end demo scripts showcasing continuous passive flow ingestion and real-time threat detection.
 
 ---
 
 ## Resume Instructions
 
 For any agent resuming this codebase:
-1. Run `.venv/bin/python -m pytest tests/` to ensure all 291 tests pass.
-2. Run `.venv/bin/python scripts/validate_lab_traffic.py` to inspect the scenario validation report.
-3. Review `contracts/alert-schema.json` and `src/unithreat/api/routes.py` to understand the API data structures for the frontend.
-4. Begin Task 7 (Dashboard UI).
+1. Backend tests: `.venv/bin/python -m pytest tests/ -v` (310 passing).
+2. Frontend tests: `cd frontend && npm test -- --run` (125 passing).
+3. Frontend build: `cd frontend && npm run build` (clean build).
+4. Run live E2E check: start `.venv/bin/uvicorn unithreat.api.app:create_app --factory --port 8000` and run `node frontend/scripts/test_e2e_live.mjs`.
+5. Proceed with Phase 7.
